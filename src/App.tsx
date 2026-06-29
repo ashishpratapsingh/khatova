@@ -276,10 +276,10 @@ export default function App() {
         <AddUserModal clients={state.clients} onClose={app.closeModal} onSubmit={app.inviteUser} />
       )}
       {state.modal === 'newclient' && (
-        <NewClientModal onClose={app.closeModal} onSubmit={app.createClient} />
+        <NewClientModal clients={state.clients} onClose={app.closeModal} onSubmit={app.createClient} />
       )}
       {state.modal === 'editclient' && (
-        <EditClientModal data={state.modalData} onClose={app.closeModal}
+        <EditClientModal data={state.modalData} clients={state.clients} onClose={app.closeModal}
           onSubmit={(p) => app.updateClient(state.modalData.id, p)} />
       )}
 

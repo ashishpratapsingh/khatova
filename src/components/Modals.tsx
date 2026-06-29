@@ -167,9 +167,11 @@ export interface ClientFormValues {
   company: string; contact: string; email: string; threshold: number; policy: WalletPolicy; currency: Currency;
 }
 
-function ClientFormModal({ title, intro, submitLabel, initial, onClose, onSubmit }: {
+function ClientFormModal({ title, intro, submitLabel, initial, existing = [], selfId, onClose, onSubmit }: {
   title: string; intro: string; submitLabel: string;
   initial?: { company?: string; contact?: string; email?: string; threshold?: number; policy?: WalletPolicy; currency?: Currency };
+  existing?: Array<{ id: string; company: string; email: string }>;
+  selfId?: string;
   onClose: () => void;
   onSubmit: (p: ClientFormValues) => Promise<void>;
 }) {
@@ -180,8 +182,12 @@ function ClientFormModal({ title, intro, submitLabel, initial, onClose, onSubmit
   const [policy, setPolicy] = useState<WalletPolicy>(initial?.policy ?? 'BLOCK');
   const [currency, setCurrency] = useState<Currency>(initial?.currency ?? 'INR');
   const [busy, setBusy] = useState(false);
-  const valid = company.trim().length > 0;
   const sym = CURRENCIES[currency].symbol.trim();
+
+  const others = existing.filter(c => c.id !== selfId);
+  const companyDup = company.trim() !== '' && others.some(c => c.company.trim().toLowerCase() === company.trim().toLowerCase());
+  const emailDup = email.trim() !== '' && others.some(c => c.email.trim().toLowerCase() === email.trim().toLowerCase());
+  const valid = company.trim().length > 0 && !companyDup && !emailDup;
 
   const submit = async () => {
     if (busy || !valid) return;
@@ -191,12 +197,21 @@ function ClientFormModal({ title, intro, submitLabel, initial, onClose, onSubmit
     } finally { setBusy(false); }
   };
 
+  const dupMsg = (text: string) => (
+    <div style={{ fontSize: 12, color: '#b5362b', marginTop: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+      <span style={{ fontFamily: "'Material Symbols Outlined'", fontSize: 15 }}>error</span>{text}
+    </div>
+  );
+
   return (
     <ModalShell title={title} onClose={onClose}>
       <p style={{ fontSize: 13, color: '#687184', margin: '2px 0 20px' }}>{intro}</p>
 
       <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Company name</label>
-      <input value={company} onChange={e => setCompany(e.target.value)} placeholder="e.g. Rathore Timber Pvt Ltd" style={{ ...inputStyle, marginBottom: 14 }} />
+      <input value={company} onChange={e => setCompany(e.target.value)} placeholder="e.g. Rathore Timber Pvt Ltd"
+        style={{ ...inputStyle, marginBottom: companyDup ? 0 : 14, borderColor: companyDup ? '#e0a3a0' : '#dcdfe6' }} />
+      {companyDup && dupMsg('A client with this name already exists.')}
+      {companyDup && <div style={{ height: 14 }} />}
 
       <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Contact person</label>
       <input value={contact} onChange={e => setContact(e.target.value)} placeholder="e.g. Vikram Rao" style={{ ...inputStyle, marginBottom: 14 }} />
@@ -217,7 +232,10 @@ function ClientFormModal({ title, intro, submitLabel, initial, onClose, onSubmit
       </div>
 
       <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Billing email</label>
-      <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="billing@company.in" style={{ ...inputStyle, marginBottom: 14 }} />
+      <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="billing@company.in"
+        style={{ ...inputStyle, marginBottom: emailDup ? 0 : 14, borderColor: emailDup ? '#e0a3a0' : '#dcdfe6' }} />
+      {emailDup && dupMsg('A client with this billing email already exists.')}
+      {emailDup && <div style={{ height: 14 }} />}
 
       <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 8 }}>Negative-balance policy</label>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 22 }}>
@@ -238,12 +256,12 @@ function ClientFormModal({ title, intro, submitLabel, initial, onClose, onSubmit
   );
 }
 
-export function NewClientModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (p: ClientFormValues) => Promise<void> }) {
-  return <ClientFormModal title="New client" intro="Add a client company. Their wallet starts at ₹0 — top it up afterwards." submitLabel="Create client" onClose={onClose} onSubmit={onSubmit} />;
+export function NewClientModal({ clients, onClose, onSubmit }: { clients: ClientMeta[]; onClose: () => void; onSubmit: (p: ClientFormValues) => Promise<void> }) {
+  return <ClientFormModal title="New client" intro="Add a client company. Their wallet starts at ₹0 — top it up afterwards." submitLabel="Create client" existing={clients} onClose={onClose} onSubmit={onSubmit} />;
 }
 
-export function EditClientModal({ data, onClose, onSubmit }: { data: Record<string, any>; onClose: () => void; onSubmit: (p: ClientFormValues) => Promise<void> }) {
-  return <ClientFormModal title="Edit client" intro="Update this client's details." submitLabel="Save changes" initial={data} onClose={onClose} onSubmit={onSubmit} />;
+export function EditClientModal({ data, clients, onClose, onSubmit }: { data: Record<string, any>; clients: ClientMeta[]; onClose: () => void; onSubmit: (p: ClientFormValues) => Promise<void> }) {
+  return <ClientFormModal title="Edit client" intro="Update this client's details." submitLabel="Save changes" initial={data} existing={clients} selfId={data.id} onClose={onClose} onSubmit={onSubmit} />;
 }
 
 // Add user modal -----------------------------------------------------------
