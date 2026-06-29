@@ -1,5 +1,6 @@
 import { TypeBadge, Icon } from '../ui';
 import { money, typeChip, qtyLabel } from '../data';
+import { usePagination, Pagination } from '../components/Pagination';
 import type { AppState } from '../types';
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 
 export default function AdminApprovals({ state, approve, openReject }: Props) {
   const pending = state.events.filter(e => e.status === 'PENDING');
+  const paged = usePagination(pending, 6);
   const cName = (id: string) => state.contracts.find(c => c.id === id)?.name || id;
 
   return (
@@ -25,7 +27,7 @@ export default function AdminApprovals({ state, approve, openReject }: Props) {
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {pending.map(ev => {
+        {paged.pageItems.map(ev => {
           const tc = typeChip(ev.type);
           const init = ev.staff.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
           const ql = qtyLabel(ev);
@@ -63,6 +65,8 @@ export default function AdminApprovals({ state, approve, openReject }: Props) {
           );
         })}
       </div>
+
+      <Pagination page={paged.page} totalPages={paged.totalPages} total={paged.total} from={paged.from} to={paged.to} onPage={paged.setPage} label="pending" />
     </div>
   );
 }

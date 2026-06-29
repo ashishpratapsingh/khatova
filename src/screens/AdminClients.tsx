@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Card, Badge, Avatar, Icon } from '../ui';
 import { ModalShell } from '../components/Modal';
+import { usePagination, Pagination } from '../components/Pagination';
 import { money, walletStatus } from '../data';
 import { useApp } from '../lib/store';
 import type { AppState, ClientStatus } from '../types';
@@ -36,6 +37,7 @@ export default function AdminClients({ state, openClient, openTopup, openNewClie
     .filter(c => filter === 'ALL' || c.st.key === filter)
     .filter(c => !q || c.company.toLowerCase().includes(q) || c.contact.toLowerCase().includes(q) || c.email.toLowerCase().includes(q));
 
+  const paged = usePagination(rows, 8, q + '|' + filter);
   const selectedRows = rows.filter(r => selected.has(r.id));
   const selectedIds = selectedRows.map(r => r.id);
   const selCount = selectedIds.length;
@@ -113,7 +115,7 @@ export default function AdminClients({ state, openClient, openTopup, openNewClie
         {rows.length === 0 && (
           <div style={{ padding: '34px 20px', textAlign: 'center', fontSize: 13.5, color: '#9aa1ad' }}>No clients match your search.</div>
         )}
-        {rows.map(c => {
+        {paged.pageItems.map(c => {
           const checked = selected.has(c.id);
           return (
             <div
@@ -150,6 +152,8 @@ export default function AdminClients({ state, openClient, openTopup, openNewClie
           );
         })}
       </Card>
+
+      <Pagination page={paged.page} totalPages={paged.totalPages} total={paged.total} from={paged.from} to={paged.to} onPage={paged.setPage} label="clients" />
 
       {confirming && (
         <ModalShell title="Delete clients" onClose={() => !busy && setConfirming(false)}>

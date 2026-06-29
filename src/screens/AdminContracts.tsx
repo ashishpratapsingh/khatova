@@ -1,5 +1,6 @@
 import { Card, Badge, TypeBadge, Icon } from '../ui';
 import { typeChip } from '../data';
+import { usePagination, Pagination } from '../components/Pagination';
 import { useApp } from '../lib/store';
 import type { AppState } from '../types';
 
@@ -15,6 +16,7 @@ export default function AdminContracts({ state, openContract, goNewContract }: P
   const contracts = state.contracts.filter(c =>
     !q || c.name.toLowerCase().includes(q) || c.client.toLowerCase().includes(q) ||
     c.rateSummary.toLowerCase().includes(q) || c.type.toLowerCase().includes(q));
+  const paged = usePagination(contracts, 8, q);
   const stMap: Record<string, { label: string; bg: string; fg: string }> = {
     ACTIVE: { label: 'Active', bg: '#e3f3ec', fg: '#0c6b4a' },
     PAUSED: { label: 'Paused', bg: '#fbf0d9', fg: '#8a5d08' },
@@ -45,7 +47,7 @@ export default function AdminContracts({ state, openContract, goNewContract }: P
         {contracts.length === 0 && (
           <div style={{ padding: '34px 20px', textAlign: 'center', fontSize: 13.5, color: '#9aa1ad' }}>No contracts match your search.</div>
         )}
-        {contracts.map(c => {
+        {paged.pageItems.map(c => {
           const tc = typeChip(c.type);
           const st = stMap[c.status];
           return (
@@ -69,6 +71,8 @@ export default function AdminContracts({ state, openContract, goNewContract }: P
           );
         })}
       </Card>
+
+      <Pagination page={paged.page} totalPages={paged.totalPages} total={paged.total} from={paged.from} to={paged.to} onPage={paged.setPage} label="contracts" />
     </div>
   );
 }

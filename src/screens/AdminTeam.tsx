@@ -1,4 +1,5 @@
 import { Card, Badge, Avatar, Icon } from '../ui';
+import { usePagination, Pagination } from '../components/Pagination';
 import { useApp } from '../lib/store';
 import type { AppState } from '../types';
 
@@ -15,6 +16,7 @@ export default function AdminTeam({ state, openAddUser }: Props) {
   const q = search.trim().toLowerCase();
   const USERS = state.users.filter(u =>
     !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.role.toLowerCase().includes(q));
+  const paged = usePagination(USERS, 8, q);
   return (
     <div style={{ maxWidth: 1080, margin: '0 auto', animation: 'lgFade .25s ease' }}>
       <div className="k-wrap" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
@@ -39,7 +41,7 @@ export default function AdminTeam({ state, openAddUser }: Props) {
         {USERS.length === 0 && (
           <div style={{ padding: '34px 20px', textAlign: 'center', fontSize: 13.5, color: '#9aa1ad' }}>No users match your search.</div>
         )}
-        {USERS.map(u => {
+        {paged.pageItems.map(u => {
           const rc = roleChip(u.role);
           return (
             <div key={u.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1fr 1.1fr', alignItems: 'center', padding: '13px 20px', borderBottom: '1px solid #f2f3f6' }}>
@@ -57,6 +59,8 @@ export default function AdminTeam({ state, openAddUser }: Props) {
           );
         })}
       </Card>
+
+      <Pagination page={paged.page} totalPages={paged.totalPages} total={paged.total} from={paged.from} to={paged.to} onPage={paged.setPage} label="users" />
     </div>
   );
 }

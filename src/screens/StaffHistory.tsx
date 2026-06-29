@@ -1,5 +1,6 @@
 import { Card, Badge, TypeBadge } from '../ui';
 import { money, typeChip, evStatusChip, qtyLabel } from '../data';
+import { usePagination, Pagination } from '../components/Pagination';
 import { useApp } from '../lib/store';
 import type { AppState } from '../types';
 
@@ -14,6 +15,7 @@ export default function StaffHistory({ state }: Props) {
   const cName = (id: string) => state.contracts.find(c => c.id === id)?.name || id;
   const myEvents = state.events.filter(e =>
     !q || e.desc.toLowerCase().includes(q) || e.unit.toLowerCase().includes(q) || cName(e.contractId).toLowerCase().includes(q));
+  const paged = usePagination(myEvents, 10, q);
 
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto', animation: 'lgFade .25s ease' }}>
@@ -24,7 +26,7 @@ export default function StaffHistory({ state }: Props) {
         {myEvents.length === 0 && (
           <div style={{ padding: '40px 20px', textAlign: 'center', fontSize: 13.5, color: '#9aa1ad' }}>No usage events logged yet.</div>
         )}
-        {myEvents.map(ev => {
+        {paged.pageItems.map(ev => {
           const tc = typeChip(ev.type);
           const sc = evStatusChip(ev.status);
           const ql = qtyLabel(ev);
@@ -45,6 +47,8 @@ export default function StaffHistory({ state }: Props) {
           );
         })}
       </Card>
+
+      <Pagination page={paged.page} totalPages={paged.totalPages} total={paged.total} from={paged.from} to={paged.to} onPage={paged.setPage} label="events" />
     </div>
   );
 }

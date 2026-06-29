@@ -1,4 +1,5 @@
 import { Card, Icon } from '../ui';
+import { usePagination, Pagination } from '../components/Pagination';
 import { money } from '../data';
 import type { AppState } from '../types';
 
@@ -9,10 +10,11 @@ interface Props {
 
 export default function ClientStatement({ state, clientId }: Props) {
   const client = state.clients.find(c => c.id === clientId) || state.clients[0];
+  const ledger = state.ledgers[clientId] || [];
+  const paged = usePagination(ledger, 12, clientId);
   if (!client) return null;
   const bal = state.balances[client.id] ?? client.balance;
   const cur = client.currency;
-  const ledger = state.ledgers[client.id] || [];
 
   const credited = ledger.filter(e => e.type === 'CREDIT' || e.type === 'ADJUSTMENT').reduce((s, e) => s + e.amount, 0);
   const debited = ledger.filter(e => e.type === 'DEBIT').reduce((s, e) => s + e.amount, 0);
@@ -52,13 +54,13 @@ export default function ClientStatement({ state, clientId }: Props) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr 1fr 1fr 1fr', padding: '11px 20px', borderBottom: '1px solid #eef0f3', fontSize: 11.5, fontWeight: 600, color: '#9aa1ad', letterSpacing: '0.03em', textTransform: 'uppercase' as const }}>
           <div>Date</div><div>Description</div><div>Type</div><div style={{ textAlign: 'right' }}>Amount</div><div style={{ textAlign: 'right' }}>Balance</div>
         </div>
-        {ledger.map((tx, i) => {
+        {paged.pageItems.map((tx, i) => {
           const isCredit = tx.type === 'CREDIT' || tx.type === 'ADJUSTMENT';
           const typeLabel = tx.type === 'CREDIT' ? 'Top-up' : tx.type === 'ADJUSTMENT' ? 'Adjustment' : 'Usage';
           const typeBg = tx.type === 'CREDIT' ? '#e3f3ec' : tx.type === 'ADJUSTMENT' ? '#eaf1fe' : '#fbe9e7';
           const typeFg = tx.type === 'CREDIT' ? '#0c6b4a' : tx.type === 'ADJUSTMENT' ? '#1f6feb' : '#c5362c';
           return (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr 1fr 1fr 1fr', alignItems: 'center', padding: '13px 20px', borderBottom: i < ledger.length - 1 ? '1px solid #f2f3f6' : 'none' }}>
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr 1fr 1fr 1fr', alignItems: 'center', padding: '13px 20px', borderBottom: i < paged.pageItems.length - 1 ? '1px solid #f2f3f6' : 'none' }}>
               <div style={{ fontSize: 12.5, color: '#687184' }}>{tx.date}</div>
               <div style={{ fontSize: 13.5, fontWeight: 500, color: '#161b26', paddingRight: 12 }}>{tx.desc}</div>
               <div>
@@ -72,6 +74,8 @@ export default function ClientStatement({ state, clientId }: Props) {
           );
         })}
       </Card>
+
+      <Pagination page={paged.page} totalPages={paged.totalPages} total={paged.total} from={paged.from} to={paged.to} onPage={paged.setPage} label="entries" />
     </div>
   );
 }

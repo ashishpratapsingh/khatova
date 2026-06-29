@@ -1,4 +1,5 @@
 import { Card, Badge, Avatar, Icon, TypeBadge } from '../ui';
+import { usePagination, Pagination } from '../components/Pagination';
 import { money, walletStatus, currencyMeta } from '../data';
 import type { AppState } from '../types';
 
@@ -14,12 +15,13 @@ interface Props {
 
 export default function AdminClientDetail({ state, back, openTopup, openAdjust, openContract, setTab, openEdit }: Props) {
   const client = state.clients.find(c => c.id === state.selClient) || state.clients[0];
+  const led = state.ledgers[state.selClient] || [];
+  const ledPaged = usePagination(led, 10, state.selClient);
   if (!client) return null;
   const bal = state.balances[state.selClient] ?? client.balance;
   const cur = client.currency;
   const cm = currencyMeta(cur);
   const st = walletStatus(bal, client.threshold);
-  const led = state.ledgers[state.selClient] || [];
   const contracts = state.contracts.filter(c => c.clientId === state.selClient);
   const tab = state.clientTab;
 
@@ -128,11 +130,12 @@ export default function AdminClientDetail({ state, back, openTopup, openAdjust, 
 
       {/* Ledger */}
       {tab === 'ledger' && (
+        <>
         <Card className="k-scroll">
           <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 110px 130px 130px', padding: '11px 20px', borderBottom: '1px solid #eef0f3', fontSize: 11.5, fontWeight: 600, color: '#9aa1ad', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
             <div>Date</div><div>Description</div><div>Type</div><div style={{ textAlign: 'right' }}>Amount</div><div style={{ textAlign: 'right' }}>Balance</div>
           </div>
-          {led.map((e, i) => {
+          {ledPaged.pageItems.map((e, i) => {
             const cr = e.type !== 'DEBIT' && !e.neg;
             const tl = e.type === 'ADJUSTMENT' ? 'Adjustment' : cr ? 'Credit' : 'Debit';
             return (
@@ -149,7 +152,9 @@ export default function AdminClientDetail({ state, back, openTopup, openAdjust, 
               </div>
             );
           })}
-        </Card>
+          </Card>
+          <Pagination page={ledPaged.page} totalPages={ledPaged.totalPages} total={ledPaged.total} from={ledPaged.from} to={ledPaged.to} onPage={ledPaged.setPage} label="entries" />
+        </>
       )}
 
       {/* Contracts */}
