@@ -1,30 +1,46 @@
 import { useEffect, useRef, useState } from 'react';
 import { Icon, Avatar } from '../ui';
 
+export interface NotifItem {
+  id: string;
+  icon: string;
+  color: string;
+  bg: string;
+  title: string;
+  desc: string;
+  onClick?: () => void;
+}
+
 interface Props {
   title: string;
   sub: string;
   me: { name: string; sub: string; initials: string; badgeBg: string; badgeFg: string };
   onMenu?: () => void;
   onLogout: () => void;
+  notifications: NotifItem[];
   search: string;
   onSearch: (q: string) => void;
   searchPlaceholder?: string;
   showSearch?: boolean;
 }
 
-export default function Header({ title, sub, me, onMenu, onLogout, search, onSearch, searchPlaceholder = 'Search…', showSearch = true }: Props) {
+export default function Header({ title, sub, me, onMenu, onLogout, notifications, search, onSearch, searchPlaceholder = 'Search…', showSearch = true }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!menuOpen && !notifOpen) return;
     const onDoc = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
     };
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
-  }, [menuOpen]);
+  }, [menuOpen, notifOpen]);
+
+  const notifCount = notifications.length;
 
   return (
     <header style={{
@@ -67,13 +83,59 @@ export default function Header({ title, sub, me, onMenu, onLogout, search, onSea
           )}
         </div>
       )}
-      <div style={{ position: 'relative', width: 38, height: 38, borderRadius: 9, background: '#f1f3f6', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-        <Icon name="notifications" size={20} color="#3f4654" />
-        <span style={{ position: 'absolute', top: 7, right: 8, width: 7, height: 7, borderRadius: '50%', background: '#e0492f', border: '1.5px solid #f1f3f6' }} />
+      <div ref={notifRef} style={{ position: 'relative' }}>
+        <button
+          onClick={() => { setNotifOpen(o => !o); setMenuOpen(false); }}
+          aria-label="Notifications"
+          style={{ position: 'relative', width: 38, height: 38, borderRadius: 9, background: notifOpen ? '#eaf1fe' : '#f1f3f6', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: 'none' }}
+        >
+          <Icon name="notifications" size={20} color={notifOpen ? '#1f6feb' : '#3f4654'} />
+          {notifCount > 0 && (
+            <span style={{ position: 'absolute', top: -4, right: -4, minWidth: 17, height: 17, padding: '0 4px', borderRadius: 9, background: '#e0492f', color: '#fff', fontSize: 10.5, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff', fontFamily: "'IBM Plex Mono'" }}>
+              {notifCount > 9 ? '9+' : notifCount}
+            </span>
+          )}
+        </button>
+
+        {notifOpen && (
+          <div style={{
+            position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 320, maxWidth: '90vw',
+            background: '#fff', border: '1px solid #e7e9ee', borderRadius: 12,
+            boxShadow: '0 12px 32px rgba(16,24,40,.16)', zIndex: 30, overflow: 'hidden',
+            animation: 'lgPop .14s ease',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 14px', borderBottom: '1px solid #f2f3f6' }}>
+              <span style={{ fontSize: 14, fontWeight: 600 }}>Notifications</span>
+              {notifCount > 0 && <span style={{ fontSize: 12, color: '#9aa1ad' }}>{notifCount} new</span>}
+            </div>
+            <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+              {notifCount === 0 && (
+                <div style={{ padding: '30px 16px', textAlign: 'center', color: '#9aa1ad', fontSize: 13 }}>You're all caught up.</div>
+              )}
+              {notifications.map(n => (
+                <div
+                  key={n.id}
+                  onClick={() => { setNotifOpen(false); n.onClick?.(); }}
+                  style={{ display: 'flex', gap: 11, padding: '12px 14px', borderBottom: '1px solid #f4f5f7', cursor: n.onClick ? 'pointer' : 'default' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#fafbfc')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <div style={{ width: 32, height: 32, borderRadius: 9, background: n.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon name={n.icon} size={18} color={n.color} />
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#161b26' }}>{n.title}</div>
+                    <div style={{ fontSize: 12, color: '#687184', marginTop: 2, lineHeight: 1.4 }}>{n.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       <div ref={menuRef} style={{ position: 'relative' }}>
         <button
-          onClick={() => setMenuOpen(o => !o)}
+          onClick={() => { setMenuOpen(o => !o); setNotifOpen(false); }}
           aria-label="Account menu"
           style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}
         >

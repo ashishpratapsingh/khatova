@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useApp } from './lib/store';
 import { useIsMobile } from './lib/useMediaQuery';
+import { money, walletStatus } from './data';
+import type { NotifItem } from './components/Header';
 import Login from './components/Login';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -157,6 +159,71 @@ export default function App() {
   };
   const searchPlaceholder = SEARCHABLE[state.route];
 
+  // Role-aware notifications derived from live data
+  const notifications: NotifItem[] = [];
+  if (currentPortal === 'admin') {
+    if (pendingCount > 0) {
+      notifications.push({
+        id: 'approvals', icon: 'fact_check', color: '#8a5d08', bg: '#fbf0d9',
+        title: `${pendingCount} approval${pendingCount === 1 ? '' : 's'} pending`,
+        desc: 'Usage events are waiting for review.',
+        onClick: () => app.go('admin.approvals'),
+      });
+    }
+    state.clients.forEach(c => {
+      const st = walletStatus(c.balance, c.threshold);
+      if (st.key !== 'HEALTHY') {
+        notifications.push({
+          id: `wallet-${c.id}`, icon: st.key === 'NEGATIVE' ? 'error' : 'warning',
+          color: st.key === 'NEGATIVE' ? '#b5362b' : '#8a5d08', bg: st.key === 'NEGATIVE' ? '#fbe9e7' : '#fbf0d9',
+          title: `${c.company} · ${st.label.toLowerCase()}`,
+          desc: `Wallet balance ${money(c.balance, false)}.`,
+          onClick: () => app.openClient(c.id),
+        });
+      }
+    });
+  } else if (currentPortal === 'staff') {
+    const pendingMine = state.events.filter(e => e.status === 'PENDING').length;
+    if (pendingMine > 0) {
+      notifications.push({
+        id: 'mine-pending', icon: 'hourglass_top', color: '#8a5d08', bg: '#fbf0d9',
+        title: `${pendingMine} event${pendingMine === 1 ? '' : 's'} awaiting approval`,
+        desc: 'Submitted usage is under review.',
+        onClick: () => app.go('staff.history'),
+      });
+    }
+    state.events.filter(e => e.status === 'REJECTED').slice(0, 5).forEach(e => {
+      notifications.push({
+        id: `rej-${e.id}`, icon: 'cancel', color: '#b5362b', bg: '#fbe9e7',
+        title: 'Usage event rejected',
+        desc: e.reason ? `${e.desc} — ${e.reason}` : e.desc,
+        onClick: () => app.go('staff.history'),
+      });
+    });
+  } else if (currentPortal === 'client') {
+    const c = state.clients.find(x => x.id === clientId);
+    if (c) {
+      const st = walletStatus(c.balance, c.threshold);
+      if (st.key !== 'HEALTHY') {
+        notifications.push({
+          id: 'my-wallet', icon: st.key === 'NEGATIVE' ? 'error' : 'warning',
+          color: st.key === 'NEGATIVE' ? '#b5362b' : '#8a5d08', bg: st.key === 'NEGATIVE' ? '#fbe9e7' : '#fbf0d9',
+          title: st.key === 'NEGATIVE' ? 'Wallet balance is negative' : 'Low wallet balance',
+          desc: `Current balance ${money(c.balance, false)}. Contact your account manager to top up.`,
+          onClick: () => app.go('client.dashboard'),
+        });
+      }
+    }
+    (state.ledgers[clientId] || []).filter(l => l.type === 'DEBIT').slice(0, 4).forEach((l, i) => {
+      notifications.push({
+        id: `debit-${i}`, icon: 'receipt_long', color: '#1f6feb', bg: '#eaf1fe',
+        title: `New charge · ${money(l.amount, false)}`,
+        desc: `${l.desc} (${l.date}).`,
+        onClick: () => app.go('client.statement'),
+      });
+    });
+  }
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f6f7f9', fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>
       {!isMobile && (
@@ -177,6 +244,7 @@ export default function App() {
         <Header
           title={meta.title} sub={meta.sub} me={me} onLogout={app.logout}
           onMenu={isMobile ? () => setDrawerOpen(true) : undefined}
+          notifications={notifications}
           search={app.search} onSearch={app.setSearch}
           searchPlaceholder={searchPlaceholder ?? 'Search…'}
           showSearch={!!searchPlaceholder}
