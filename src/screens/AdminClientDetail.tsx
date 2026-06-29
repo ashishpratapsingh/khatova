@@ -47,7 +47,14 @@ export default function AdminClientDetail({ state, back, openTopup, openAdjust, 
             <h2 style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.4px', margin: 0 }}>{client.company}</h2>
             <Badge label={st.label} bg={st.bg} fg={st.fg} />
           </div>
-          <div style={{ fontSize: 13, color: '#687184', marginTop: 4 }}>{client.contact} · {client.email}</div>
+          <div style={{ fontSize: 13, color: '#687184', marginTop: 4 }}>
+            {[client.contact, client.email, client.mobile].filter(Boolean).join(' · ')}
+          </div>
+          {[client.address1, client.address2, client.city, client.state].some(Boolean) && (
+            <div style={{ fontSize: 12.5, color: '#9aa1ad', marginTop: 3 }}>
+              {[client.address1, client.address2, client.city, client.state].filter(Boolean).join(', ')}
+            </div>
+          )}
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => openEdit(state.selClient)} style={{ height: 40, border: '1px solid #dcdfe6', background: '#fff', color: '#3f4654', borderRadius: 9, padding: '0 14px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>

@@ -17,7 +17,7 @@ const FILTERS: Array<{ label: string; key: ClientStatus | 'ALL' }> = [
   { label: 'Low', key: 'LOW' }, { label: 'Negative', key: 'NEGATIVE' },
 ];
 
-const GRID = '40px 2fr 1.5fr 1.1fr 1fr 116px';
+const GRID = '40px 1.8fr 1.4fr 1.1fr 1.1fr 1fr 110px';
 
 export default function AdminClients({ state, openClient, openTopup, openNewClient }: Props) {
   const { search, setSearch, deleteClients } = useApp();
@@ -108,7 +108,7 @@ export default function AdminClients({ state, openClient, openTopup, openNewClie
             <input type="checkbox" checked={allSelected} onChange={toggleAll}
               aria-label="Select all" style={{ width: 16, height: 16, accentColor: '#1f6feb', cursor: 'pointer' }} />
           </div>
-          <div>Client</div><div>Billing email</div><div style={{ textAlign: 'right' }}>Balance</div><div style={{ textAlign: 'center' }}>Status</div><div />
+          <div>Client</div><div>Billing email</div><div>Mobile</div><div style={{ textAlign: 'right' }}>Balance</div><div style={{ textAlign: 'center' }}>Status</div><div />
         </div>
         {rows.length === 0 && (
           <div style={{ padding: '34px 20px', textAlign: 'center', fontSize: 13.5, color: '#9aa1ad' }}>No clients match your search.</div>
@@ -134,7 +134,8 @@ export default function AdminClients({ state, openClient, openTopup, openNewClie
                   <div style={{ fontSize: 12, color: '#9aa1ad' }}>{c.contact}</div>
                 </div>
               </div>
-              <div style={{ fontSize: 13, color: '#687184', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.email}</div>
+              <div style={{ fontSize: 13, color: '#687184', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.email || '—'}</div>
+              <div style={{ fontSize: 13, color: c.mobile ? '#3f4654' : '#c5cad3', fontFamily: c.mobile ? "'IBM Plex Mono'" : 'inherit', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.mobile || '—'}</div>
               <div style={{ textAlign: 'right', fontFamily: "'IBM Plex Mono'", fontSize: 14, fontWeight: 600, color: c.balanceColor }}>{c.balanceFmt}</div>
               <div style={{ textAlign: 'center' }}><Badge label={c.st.label} bg={c.st.bg} fg={c.st.fg} /></div>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

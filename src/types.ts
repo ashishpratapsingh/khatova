@@ -26,6 +26,11 @@ export interface ClientMeta {
   last: string;
   balance: number;
   currency: Currency;
+  mobile: string;
+  address1: string;
+  address2: string;
+  city: string;
+  state: string;
 }
 
 export interface UserRow {

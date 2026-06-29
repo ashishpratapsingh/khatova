@@ -165,11 +165,12 @@ const POLICIES: Array<{ key: WalletPolicy; label: string; desc: string }> = [
 
 export interface ClientFormValues {
   company: string; contact: string; email: string; threshold: number; policy: WalletPolicy; currency: Currency;
+  mobile: string; address1: string; address2: string; city: string; state: string;
 }
 
 function ClientFormModal({ title, intro, submitLabel, initial, existing = [], selfId, onClose, onSubmit }: {
   title: string; intro: string; submitLabel: string;
-  initial?: { company?: string; contact?: string; email?: string; threshold?: number; policy?: WalletPolicy; currency?: Currency };
+  initial?: Partial<ClientFormValues> & { threshold?: number };
   existing?: Array<{ id: string; company: string; email: string }>;
   selfId?: string;
   onClose: () => void;
@@ -181,6 +182,11 @@ function ClientFormModal({ title, intro, submitLabel, initial, existing = [], se
   const [threshold, setThreshold] = useState(initial?.threshold ? String(initial.threshold / 100) : '');
   const [policy, setPolicy] = useState<WalletPolicy>(initial?.policy ?? 'BLOCK');
   const [currency, setCurrency] = useState<Currency>(initial?.currency ?? 'INR');
+  const [mobile, setMobile] = useState(initial?.mobile ?? '');
+  const [address1, setAddress1] = useState(initial?.address1 ?? '');
+  const [address2, setAddress2] = useState(initial?.address2 ?? '');
+  const [city, setCity] = useState(initial?.city ?? '');
+  const [stateField, setStateField] = useState(initial?.state ?? '');
   const [busy, setBusy] = useState(false);
   const sym = CURRENCIES[currency].symbol.trim();
 
@@ -193,7 +199,8 @@ function ClientFormModal({ title, intro, submitLabel, initial, existing = [], se
     if (busy || !valid) return;
     setBusy(true);
     try {
-      await onSubmit({ company, contact, email, threshold: Math.round((parseFloat(threshold || '0') || 0) * 100), policy, currency });
+      await onSubmit({ company, contact, email, threshold: Math.round((parseFloat(threshold || '0') || 0) * 100), policy, currency,
+        mobile, address1, address2, city, state: stateField });
     } finally { setBusy(false); }
   };
 
@@ -213,8 +220,16 @@ function ClientFormModal({ title, intro, submitLabel, initial, existing = [], se
       {companyDup && dupMsg('A client with this name already exists.')}
       {companyDup && <div style={{ height: 14 }} />}
 
-      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Contact person</label>
-      <input value={contact} onChange={e => setContact(e.target.value)} placeholder="e.g. Vikram Rao" style={{ ...inputStyle, marginBottom: 14 }} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+        <div>
+          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Contact person</label>
+          <input value={contact} onChange={e => setContact(e.target.value)} placeholder="e.g. Vikram Rao" style={inputStyle} />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Mobile number</label>
+          <input value={mobile} onChange={e => setMobile(e.target.value)} placeholder="e.g. +91 98765 43210" style={inputStyle} />
+        </div>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
         <div>
@@ -236,6 +251,23 @@ function ClientFormModal({ title, intro, submitLabel, initial, existing = [], se
         style={{ ...inputStyle, marginBottom: emailDup ? 0 : 14, borderColor: emailDup ? '#e0a3a0' : '#dcdfe6' }} />
       {emailDup && dupMsg('A client with this billing email already exists.')}
       {emailDup && <div style={{ height: 14 }} />}
+
+      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Address line 1</label>
+      <input value={address1} onChange={e => setAddress1(e.target.value)} placeholder="Street address, building" style={{ ...inputStyle, marginBottom: 12 }} />
+
+      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Address line 2</label>
+      <input value={address2} onChange={e => setAddress2(e.target.value)} placeholder="Area, landmark (optional)" style={{ ...inputStyle, marginBottom: 12 }} />
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+        <div>
+          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>City</label>
+          <input value={city} onChange={e => setCity(e.target.value)} placeholder="e.g. Mumbai" style={inputStyle} />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>State</label>
+          <input value={stateField} onChange={e => setStateField(e.target.value)} placeholder="e.g. Maharashtra" style={inputStyle} />
+        </div>
+      </div>
 
       <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 8 }}>Negative-balance policy</label>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 22 }}>
