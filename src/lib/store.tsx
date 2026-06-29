@@ -98,6 +98,7 @@ interface AppApi {
   createContract: (p: CreateContractInput) => Promise<void>;
   inviteUser: (p: { email: string; password: string; name: string; role: 'admin' | 'staff' | 'client'; client: string | null }) => Promise<void>;
   createClient: (p: { company: string; contact: string; email: string; threshold: number; policy: WalletPolicy }) => Promise<void>;
+  deleteClients: (ids: string[]) => Promise<void>;
 }
 
 export interface CreateContractInput {
@@ -340,12 +341,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     flash('Client created');
   }, [flash, invalidate]);
 
+  const deleteClients = useCallback(async (ids: string[]) => {
+    if (ids.length === 0) return;
+    const { error } = await supabase.rpc('delete_clients', { p_ids: ids });
+    if (error) { flash(error.message, 'warn'); throw error; }
+    invalidate(['clients', 'contracts', 'rates', 'events', 'ledger']);
+    flash(`${ids.length} client${ids.length === 1 ? '' : 's'} deleted`, 'warn');
+  }, [flash, invalidate]);
+
   const api: AppApi = {
     state, session, profile, portal, authLoading, authError,
     search, setSearch, readNotifs, markNotifsRead,
     login, logout, go, openClient, openContract, setClientTab, setNewType, setLogContract, update,
     openTopup, openAdjust, openReject, openAddUser, openNewClient, closeModal,
-    flash, topup, adjust, approve, reject, logUsage, createContract, inviteUser, createClient,
+    flash, topup, adjust, approve, reject, logUsage, createContract, inviteUser, createClient, deleteClients,
   };
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;
 }
