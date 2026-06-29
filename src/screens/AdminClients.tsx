@@ -31,7 +31,7 @@ export default function AdminClients({ state, openClient, openTopup, openNewClie
     .map(c => {
       const b = state.balances[c.id];
       const st = walletStatus(b, c.threshold);
-      return { ...c, balance: b, balanceFmt: money(b, false), balanceColor: b < 0 ? '#b5362b' : '#161b26', st };
+      return { ...c, balance: b, balanceFmt: money(b, false, c.currency), balanceColor: b < 0 ? '#b5362b' : '#161b26', st };
     })
     .filter(c => filter === 'ALL' || c.st.key === filter)
     .filter(c => !q || c.company.toLowerCase().includes(q) || c.contact.toLowerCase().includes(q) || c.email.toLowerCase().includes(q));

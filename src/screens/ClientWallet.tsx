@@ -11,6 +11,7 @@ export default function ClientWallet({ state, clientId }: Props) {
   const client = state.clients.find(c => c.id === clientId) || state.clients[0];
   if (!client) return null;
   const bal = state.balances[client.id] ?? client.balance;
+  const cur = client.currency;
   const ledger = (state.ledgers[client.id] || []).slice(0, 8);
   const spent = ledger.filter(e => e.type === 'DEBIT').reduce((s, e) => s + e.amount, 0);
   const activeContracts = state.contracts.filter(c => c.status === 'ACTIVE').length;
@@ -21,7 +22,7 @@ export default function ClientWallet({ state, clientId }: Props) {
         <div className="k-wrap" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
           <div>
             <div style={{ fontSize: 13, color: '#9fb0cc', fontWeight: 500, marginBottom: 6 }}>Wallet balance</div>
-            <div style={{ fontSize: 38, fontWeight: 700, fontFamily: "'IBM Plex Mono'", letterSpacing: '-1px', lineHeight: 1 }}>{money(bal, false)}</div>
+            <div style={{ fontSize: 38, fontWeight: 700, fontFamily: "'IBM Plex Mono'", letterSpacing: '-1px', lineHeight: 1 }}>{money(bal, false, cur)}</div>
             <div style={{ fontSize: 12.5, color: '#9fb0cc', marginTop: 10 }}>{client.company}</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, height: 42, background: 'rgba(255,255,255,.08)', color: '#cdd9ee', borderRadius: 10, padding: '0 16px', fontSize: 13 }}>
@@ -31,9 +32,9 @@ export default function ClientWallet({ state, clientId }: Props) {
 
         <div className="rg-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 28 }}>
           {[
-            { label: 'Spent (recent)', value: money(spent, false) },
+            { label: 'Spent (recent)', value: money(spent, false, cur) },
             { label: 'Active contracts', value: String(activeContracts) },
-            { label: 'Alert threshold', value: money(client.threshold, false) },
+            { label: 'Alert threshold', value: money(client.threshold, false, cur) },
           ].map(s => (
             <div key={s.label} style={{ background: 'rgba(255,255,255,.07)', borderRadius: 12, padding: '14px 16px' }}>
               <div style={{ fontSize: 12, color: '#9fb0cc', marginBottom: 4 }}>{s.label}</div>
@@ -61,9 +62,9 @@ export default function ClientWallet({ state, clientId }: Props) {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontFamily: "'IBM Plex Mono'", fontSize: 14, fontWeight: 600, color: isCredit ? '#0c6b4a' : '#c5362c' }}>
-                  {isCredit ? '+' : '-'}{money(tx.amount, false)}
+                  {isCredit ? '+' : '-'}{money(tx.amount, false, cur)}
                 </div>
-                <div style={{ fontSize: 12, color: '#9aa1ad', marginTop: 2 }}>{money(tx.balance, false)}</div>
+                <div style={{ fontSize: 12, color: '#9aa1ad', marginTop: 2 }}>{money(tx.balance, false, cur)}</div>
               </div>
             </div>
           );

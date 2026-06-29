@@ -11,6 +11,7 @@ export default function ClientStatement({ state, clientId }: Props) {
   const client = state.clients.find(c => c.id === clientId) || state.clients[0];
   if (!client) return null;
   const bal = state.balances[client.id] ?? client.balance;
+  const cur = client.currency;
   const ledger = state.ledgers[client.id] || [];
 
   const credited = ledger.filter(e => e.type === 'CREDIT' || e.type === 'ADJUSTMENT').reduce((s, e) => s + e.amount, 0);
@@ -18,10 +19,10 @@ export default function ClientStatement({ state, clientId }: Props) {
   const opening = bal + debited - credited;
 
   const summary = [
-    { label: 'Opening balance', value: money(opening, false), color: '#161b26' },
-    { label: 'Credited', value: money(credited, false), color: '#0c6b4a' },
-    { label: 'Debited', value: money(debited, false), color: '#c5362c' },
-    { label: 'Closing balance', value: money(bal, false), color: '#1f6feb' },
+    { label: 'Opening balance', value: money(opening, false, cur), color: '#161b26' },
+    { label: 'Credited', value: money(credited, false, cur), color: '#0c6b4a' },
+    { label: 'Debited', value: money(debited, false, cur), color: '#c5362c' },
+    { label: 'Closing balance', value: money(bal, false, cur), color: '#1f6feb' },
   ];
 
   return (
@@ -64,9 +65,9 @@ export default function ClientStatement({ state, clientId }: Props) {
                 <span style={{ display: 'inline-block', fontSize: 11.5, fontWeight: 600, background: typeBg, color: typeFg, borderRadius: 5, padding: '3px 8px' }}>{typeLabel}</span>
               </div>
               <div style={{ textAlign: 'right', fontFamily: "'IBM Plex Mono'", fontSize: 13.5, fontWeight: 600, color: isCredit ? '#0c6b4a' : '#c5362c' }}>
-                {isCredit ? '+' : '-'}{money(tx.amount, false)}
+                {isCredit ? '+' : '-'}{money(tx.amount, false, cur)}
               </div>
-              <div style={{ textAlign: 'right', fontFamily: "'IBM Plex Mono'", fontSize: 13, color: '#3f4654' }}>{money(tx.balance, false)}</div>
+              <div style={{ textAlign: 'right', fontFamily: "'IBM Plex Mono'", fontSize: 13, color: '#3f4654' }}>{money(tx.balance, false, cur)}</div>
             </div>
           );
         })}

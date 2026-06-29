@@ -1,6 +1,17 @@
-import type { ContractType, ContractRateConfig } from './types';
+import type { ContractType, ContractRateConfig, Currency } from './types';
 
 export type { ContractRateConfig };
+
+export const CURRENCIES: Record<Currency, { symbol: string; locale: string; label: string; option: string }> = {
+  INR: { symbol: '₹', locale: 'en-IN', label: 'Indian Rupee', option: 'INR · ₹ Indian Rupee' },
+  USD: { symbol: '$', locale: 'en-US', label: 'US Dollar', option: 'USD · $ US Dollar' },
+  AED: { symbol: 'AED ', locale: 'en-AE', label: 'UAE Dirham', option: 'AED · Dubai (UAE Dirham)' },
+  GBP: { symbol: '£', locale: 'en-GB', label: 'British Pound', option: 'GBP · UK (British Pound)' },
+};
+
+export function currencyMeta(c: Currency) {
+  return CURRENCIES[c] || CURRENCIES.INR;
+}
 
 export function getUnitOptions(rate: ContractRateConfig | undefined) {
   if (!rate) return [] as Array<{ key: string; label: string; rate: number; amount: number; isMilestone: boolean }>;
@@ -12,9 +23,10 @@ export function getUnitOptions(rate: ContractRateConfig | undefined) {
 }
 
 // Formatters --------------------------------------------------------------
-export function money(paise: number, decimals = false): string {
-  const v = Math.abs(paise) / 100;
-  return '₹' + new Intl.NumberFormat('en-IN', {
+export function money(minor: number, decimals = false, currency: Currency = 'INR'): string {
+  const c = currencyMeta(currency);
+  const v = Math.abs(minor) / 100;
+  return c.symbol + new Intl.NumberFormat(c.locale, {
     minimumFractionDigits: decimals ? 2 : 0,
     maximumFractionDigits: decimals ? 2 : 0,
   }).format(v);

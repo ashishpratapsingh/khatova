@@ -6,7 +6,7 @@ import { supabase } from './supabase';
 import { fmtDate } from '../data';
 import type {
   AppState, Route, Portal, Profile, ClientMeta, Contract, UsageEvent,
-  LedgerEntry, ContractRateConfig, UserRow, ContractType, ApprovalMode, WalletPolicy,
+  LedgerEntry, ContractRateConfig, UserRow, ContractType, ApprovalMode, WalletPolicy, Currency,
 } from '../types';
 
 type ApprovalMode2 = 'MANUAL' | 'AUTO';
@@ -16,7 +16,7 @@ function mapClient(r: any): ClientMeta {
   return {
     id: r.id, company: r.company, contact: r.contact, email: r.email,
     initials: r.initials, threshold: r.threshold_paise, policy: r.policy as WalletPolicy,
-    last: '—', balance: r.balance_paise,
+    last: '—', balance: r.balance_paise, currency: (r.currency ?? 'INR') as Currency,
   };
 }
 function mapContract(r: any): Contract {
@@ -98,8 +98,8 @@ interface AppApi {
   logUsage: (p: { contractId: string; unit: string; qty: number; amount: number; type: ContractType; desc: string }) => Promise<void>;
   createContract: (p: CreateContractInput) => Promise<void>;
   inviteUser: (p: { email: string; password: string; name: string; role: 'admin' | 'staff' | 'client'; client: string | null }) => Promise<void>;
-  createClient: (p: { company: string; contact: string; email: string; threshold: number; policy: WalletPolicy }) => Promise<void>;
-  updateClient: (id: string, p: { company: string; contact: string; email: string; threshold: number; policy: WalletPolicy }) => Promise<void>;
+  createClient: (p: { company: string; contact: string; email: string; threshold: number; policy: WalletPolicy; currency: Currency }) => Promise<void>;
+  updateClient: (id: string, p: { company: string; contact: string; email: string; threshold: number; policy: WalletPolicy; currency: Currency }) => Promise<void>;
   deleteClients: (ids: string[]) => Promise<void>;
 }
 
@@ -262,12 +262,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const clientById = useCallback((id: string) => clients.find(c => c.id === id), [clients]);
   const openTopup = useCallback((id: string) => {
     const c = clientById(id);
-    setModalData({ id, clientId: id, company: c?.company ?? '', balance: c?.balance ?? 0 });
+    setModalData({ id, clientId: id, company: c?.company ?? '', balance: c?.balance ?? 0, currency: c?.currency ?? 'INR' });
     setModal('topup');
   }, [clientById]);
   const openAdjust = useCallback((id: string) => {
     const c = clientById(id);
-    setModalData({ id, clientId: id, company: c?.company ?? '', balance: c?.balance ?? 0 });
+    setModalData({ id, clientId: id, company: c?.company ?? '', balance: c?.balance ?? 0, currency: c?.currency ?? 'INR' });
     setModal('adjust');
   }, [clientById]);
   const openReject = useCallback((ev: { id: string; staff: string; desc: string; amountFmt: string }) => {
@@ -278,7 +278,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const openEditClient = useCallback((id: string) => {
     const c = clientById(id);
     if (!c) return;
-    setModalData({ id, company: c.company, contact: c.contact, email: c.email, threshold: c.threshold, policy: c.policy });
+    setModalData({ id, company: c.company, contact: c.contact, email: c.email, threshold: c.threshold, policy: c.policy, currency: c.currency });
     setModal('editclient');
   }, [clientById]);
   const closeModal = useCallback(() => setModal(null), []);
@@ -340,18 +340,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     flash('User account created');
   }, [flash, invalidate]);
 
-  const createClient = useCallback(async (p: { company: string; contact: string; email: string; threshold: number; policy: WalletPolicy }) => {
+  const createClient = useCallback(async (p: { company: string; contact: string; email: string; threshold: number; policy: WalletPolicy; currency: Currency }) => {
     const { error } = await supabase.rpc('create_client', {
-      p_company: p.company, p_contact: p.contact, p_email: p.email, p_threshold: p.threshold, p_policy: p.policy,
+      p_company: p.company, p_contact: p.contact, p_email: p.email, p_threshold: p.threshold, p_policy: p.policy, p_currency: p.currency,
     });
     if (error) { flash(error.message, 'warn'); throw error; }
     invalidate(['clients']); setModal(null);
     flash('Client created');
   }, [flash, invalidate]);
 
-  const updateClient = useCallback(async (id: string, p: { company: string; contact: string; email: string; threshold: number; policy: WalletPolicy }) => {
+  const updateClient = useCallback(async (id: string, p: { company: string; contact: string; email: string; threshold: number; policy: WalletPolicy; currency: Currency }) => {
     const { error } = await supabase.rpc('update_client', {
-      p_id: id, p_company: p.company, p_contact: p.contact, p_email: p.email, p_threshold: p.threshold, p_policy: p.policy,
+      p_id: id, p_company: p.company, p_contact: p.contact, p_email: p.email, p_threshold: p.threshold, p_policy: p.policy, p_currency: p.currency,
     });
     if (error) { flash(error.message, 'warn'); throw error; }
     invalidate(['clients']); setModal(null);

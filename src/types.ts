@@ -12,6 +12,7 @@ export type ApprovalMode = 'MANUAL' | 'AUTO';
 export type EventStatus = 'PENDING' | 'BILLED' | 'REJECTED';
 export type ClientStatus = 'HEALTHY' | 'LOW' | 'NEGATIVE';
 export type WalletPolicy = 'BLOCK' | 'ALLOW' | 'PAUSE';
+export type Currency = 'INR' | 'USD' | 'AED' | 'GBP';
 export type Modal = 'topup' | 'adjust' | 'reject' | 'adduser' | 'newclient' | 'editclient' | null;
 
 export interface ClientMeta {
@@ -24,6 +25,7 @@ export interface ClientMeta {
   policy: WalletPolicy;
   last: string;
   balance: number;
+  currency: Currency;
 }
 
 export interface UserRow {

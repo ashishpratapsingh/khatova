@@ -1,5 +1,5 @@
 import { Card, Badge, Avatar, Icon, TypeBadge } from '../ui';
-import { money, walletStatus } from '../data';
+import { money, walletStatus, currencyMeta } from '../data';
 import type { AppState } from '../types';
 
 interface Props {
@@ -16,6 +16,8 @@ export default function AdminClientDetail({ state, back, openTopup, openAdjust, 
   const client = state.clients.find(c => c.id === state.selClient) || state.clients[0];
   if (!client) return null;
   const bal = state.balances[state.selClient] ?? client.balance;
+  const cur = client.currency;
+  const cm = currencyMeta(cur);
   const st = walletStatus(bal, client.threshold);
   const led = state.ledgers[state.selClient] || [];
   const contracts = state.contracts.filter(c => c.clientId === state.selClient);
@@ -77,11 +79,11 @@ export default function AdminClientDetail({ state, back, openTopup, openAdjust, 
           <div className="rg-4" style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr 1fr 1fr', gap: 16, marginBottom: 22 }}>
             <Card style={{ padding: 18 }}>
               <div style={{ fontSize: 12.5, color: '#687184', fontWeight: 500 }}>Current balance</div>
-              <div style={{ fontSize: 26, fontWeight: 600, fontFamily: "'IBM Plex Mono'", letterSpacing: '-0.6px', marginTop: 8, color: bal < 0 ? '#b5362b' : '#161b26' }}>{money(bal, false)}</div>
+              <div style={{ fontSize: 26, fontWeight: 600, fontFamily: "'IBM Plex Mono'", letterSpacing: '-0.6px', marginTop: 8, color: bal < 0 ? '#b5362b' : '#161b26' }}>{money(bal, false, cur)}</div>
             </Card>
             <Card style={{ padding: 18 }}>
               <div style={{ fontSize: 12.5, color: '#687184', fontWeight: 500 }}>Low-balance alert</div>
-              <div style={{ fontSize: 22, fontWeight: 600, fontFamily: "'IBM Plex Mono'", marginTop: 10 }}>{money(client.threshold, false)}</div>
+              <div style={{ fontSize: 22, fontWeight: 600, fontFamily: "'IBM Plex Mono'", marginTop: 10 }}>{money(client.threshold, false, cur)}</div>
               <div style={{ fontSize: 12, color: '#9aa1ad', marginTop: 3 }}>notify at or below</div>
             </Card>
             <Card style={{ padding: 18 }}>
@@ -91,8 +93,8 @@ export default function AdminClientDetail({ state, back, openTopup, openAdjust, 
             </Card>
             <Card style={{ padding: 18 }}>
               <div style={{ fontSize: 12.5, color: '#687184', fontWeight: 500 }}>Wallet currency</div>
-              <div style={{ fontSize: 18, fontWeight: 600, marginTop: 11 }}>INR · ₹</div>
-              <div style={{ fontSize: 12, color: '#9aa1ad', marginTop: 3 }}>ISO 4217</div>
+              <div style={{ fontSize: 18, fontWeight: 600, marginTop: 11 }}>{cur} · {cm.symbol.trim()}</div>
+              <div style={{ fontSize: 12, color: '#9aa1ad', marginTop: 3 }}>{cm.label}</div>
             </Card>
           </div>
           <Card>
@@ -108,8 +110,8 @@ export default function AdminClientDetail({ state, back, openTopup, openAdjust, 
                     <div style={{ fontSize: 13.5, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.desc}</div>
                     <div style={{ fontSize: 12, color: '#9aa1ad' }}>{e.date} · {e.type === 'ADJUSTMENT' ? 'Adjustment' : cr ? 'Credit' : 'Debit'}</div>
                   </div>
-                  <div style={{ fontFamily: "'IBM Plex Mono'", fontSize: 13.5, fontWeight: 600, color: cr ? '#0c6b4a' : '#161b26' }}>{(cr ? '+ ' : '− ') + money(e.amount, true)}</div>
-                  <div style={{ fontFamily: "'IBM Plex Mono'", fontSize: 12.5, color: '#9aa1ad', width: 96, textAlign: 'right' }}>{money(e.balance, true)}</div>
+                  <div style={{ fontFamily: "'IBM Plex Mono'", fontSize: 13.5, fontWeight: 600, color: cr ? '#0c6b4a' : '#161b26' }}>{(cr ? '+ ' : '− ') + money(e.amount, true, cur)}</div>
+                  <div style={{ fontFamily: "'IBM Plex Mono'", fontSize: 12.5, color: '#9aa1ad', width: 96, textAlign: 'right' }}>{money(e.balance, true, cur)}</div>
                 </div>
               );
             })}
@@ -135,8 +137,8 @@ export default function AdminClientDetail({ state, back, openTopup, openAdjust, 
                     <span style={{ width: 7, height: 7, borderRadius: '50%', background: cr ? '#0c7a52' : '#c5362c', display: 'inline-block' }} />{tl}
                   </span>
                 </div>
-                <div style={{ textAlign: 'right', fontFamily: "'IBM Plex Mono'", fontSize: 13.5, fontWeight: 600, color: cr ? '#0c6b4a' : '#161b26' }}>{(cr ? '+ ' : '− ') + money(e.amount, true)}</div>
-                <div style={{ textAlign: 'right', fontFamily: "'IBM Plex Mono'", fontSize: 13, color: '#54607a' }}>{money(e.balance, true)}</div>
+                <div style={{ textAlign: 'right', fontFamily: "'IBM Plex Mono'", fontSize: 13.5, fontWeight: 600, color: cr ? '#0c6b4a' : '#161b26' }}>{(cr ? '+ ' : '− ') + money(e.amount, true, cur)}</div>
+                <div style={{ textAlign: 'right', fontFamily: "'IBM Plex Mono'", fontSize: 13, color: '#54607a' }}>{money(e.balance, true, cur)}</div>
               </div>
             );
           })}
@@ -179,7 +181,7 @@ export default function AdminClientDetail({ state, back, openTopup, openAdjust, 
             <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Low-balance alerts</div>
             <p style={{ fontSize: 13, color: '#687184', margin: '0 0 16px' }}>Notify when the wallet drops to or below this amount.</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <input defaultValue={money(client.threshold, false)} style={{ flex: 1, height: 42, border: '1px solid #dcdfe6', borderRadius: 10, padding: '0 14px', fontSize: 15, fontWeight: 600, fontFamily: "'IBM Plex Mono'" }} />
+              <input defaultValue={money(client.threshold, false, cur)} style={{ flex: 1, height: 42, border: '1px solid #dcdfe6', borderRadius: 10, padding: '0 14px', fontSize: 15, fontWeight: 600, fontFamily: "'IBM Plex Mono'" }} />
               <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13.5, color: '#3f4654', fontWeight: 500, whiteSpace: 'nowrap' }}>
                 <span style={{ width: 38, height: 22, borderRadius: 11, background: '#1f6feb', position: 'relative', display: 'inline-block' }}>
                   <span style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: '50%', background: '#fff', display: 'block' }} />

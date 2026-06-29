@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ModalShell, MRow } from './Modal';
-import { money } from '../data';
-import type { ClientMeta, WalletPolicy } from '../types';
+import { money, CURRENCIES } from '../data';
+import type { ClientMeta, WalletPolicy, Currency } from '../types';
 
 const inputStyle = { width: '100%', height: 44, border: '1px solid #dcdfe6', borderRadius: 10, padding: '0 13px', fontSize: 13.5, boxSizing: 'border-box' as const };
 
@@ -11,6 +11,8 @@ export function TopupModal({ data, onClose, onSubmit }: {
   onSubmit: (amountPaise: number, method: string, ref: string) => Promise<void>;
 }) {
   const bal = data.balance ?? 0;
+  const cur: Currency = data.currency ?? 'INR';
+  const sym = CURRENCIES[cur].symbol.trim();
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('Bank Transfer');
   const [ref, setRef] = useState('');
@@ -29,14 +31,14 @@ export function TopupModal({ data, onClose, onSubmit }: {
         Credit the wallet for <strong>{data.company}</strong>
       </p>
 
-      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Amount (₹)</label>
+      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Amount ({sym})</label>
       <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0"
         style={{ ...inputStyle, fontSize: 17, fontWeight: 700, fontFamily: "'IBM Plex Mono'", marginBottom: 14 }} />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 14 }}>
-        {[['10,000', 10000], ['25,000', 25000], ['1,00,000', 100000]].map(([lbl, v]) => (
-          <button key={lbl as string} onClick={() => setAmount(String(v))}
-            style={{ height: 36, border: '1px solid #dcdfe6', background: '#f8f9fb', borderRadius: 9, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#3f4654' }}>₹{lbl}</button>
+        {[1000, 5000, 25000].map(v => (
+          <button key={v} onClick={() => setAmount(String(v))}
+            style={{ height: 36, border: '1px solid #dcdfe6', background: '#f8f9fb', borderRadius: 9, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#3f4654' }}>{money(v * 100, false, cur)}</button>
         ))}
       </div>
 
@@ -52,10 +54,10 @@ export function TopupModal({ data, onClose, onSubmit }: {
         style={{ ...inputStyle, marginBottom: 18 }} />
 
       <div style={{ background: '#f5f9ff', border: '1px solid #d8e6fd', borderRadius: 10, padding: '12px 14px', marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <MRow label="Current balance">{money(bal, false)}</MRow>
-        <MRow label="Top-up amount">+{money(amt, false)}</MRow>
+        <MRow label="Current balance">{money(bal, false, cur)}</MRow>
+        <MRow label="Top-up amount">+{money(amt, false, cur)}</MRow>
         <div style={{ borderTop: '1px solid #d8e6fd', margin: '4px 0' }} />
-        <MRow label="New balance"><span style={{ color: '#1f6feb' }}>{money(bal + amt, false)}</span></MRow>
+        <MRow label="New balance"><span style={{ color: '#1f6feb' }}>{money(bal + amt, false, cur)}</span></MRow>
       </div>
 
       <div style={{ display: 'flex', gap: 10 }}>
@@ -72,6 +74,8 @@ export function AdjustModal({ data, onClose, onSubmit }: {
   onSubmit: (amountPaise: number, dir: 'credit' | 'debit', reason: string) => Promise<void>;
 }) {
   const bal = data.balance ?? 0;
+  const cur: Currency = data.currency ?? 'INR';
+  const sym = CURRENCIES[cur].symbol.trim();
   const [amount, setAmount] = useState('');
   const [dir, setDir] = useState<'credit' | 'debit'>('credit');
   const [reason, setReason] = useState('');
@@ -98,7 +102,7 @@ export function AdjustModal({ data, onClose, onSubmit }: {
         ))}
       </div>
 
-      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Amount (₹)</label>
+      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Amount ({sym})</label>
       <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0"
         style={{ ...inputStyle, fontSize: 17, fontWeight: 700, fontFamily: "'IBM Plex Mono'", marginBottom: 14 }} />
 
@@ -107,10 +111,10 @@ export function AdjustModal({ data, onClose, onSubmit }: {
         style={{ ...inputStyle, height: 78, padding: '10px 13px', resize: 'none', marginBottom: 18, fontFamily: "'IBM Plex Sans'" }} />
 
       <div style={{ background: '#f5f9ff', border: '1px solid #d8e6fd', borderRadius: 10, padding: '12px 14px', marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <MRow label="Current balance">{money(bal, false)}</MRow>
-        <MRow label="Adjustment">{isDebit ? '-' : '+'}{money(amt, false)}</MRow>
+        <MRow label="Current balance">{money(bal, false, cur)}</MRow>
+        <MRow label="Adjustment">{isDebit ? '-' : '+'}{money(amt, false, cur)}</MRow>
         <div style={{ borderTop: '1px solid #d8e6fd', margin: '4px 0' }} />
-        <MRow label="New balance"><span style={{ color: '#1f6feb' }}>{money(isDebit ? bal - amt : bal + amt, false)}</span></MRow>
+        <MRow label="New balance"><span style={{ color: '#1f6feb' }}>{money(isDebit ? bal - amt : bal + amt, false, cur)}</span></MRow>
       </div>
 
       <div style={{ display: 'flex', gap: 10 }}>
@@ -160,12 +164,12 @@ const POLICIES: Array<{ key: WalletPolicy; label: string; desc: string }> = [
 ];
 
 export interface ClientFormValues {
-  company: string; contact: string; email: string; threshold: number; policy: WalletPolicy;
+  company: string; contact: string; email: string; threshold: number; policy: WalletPolicy; currency: Currency;
 }
 
 function ClientFormModal({ title, intro, submitLabel, initial, onClose, onSubmit }: {
   title: string; intro: string; submitLabel: string;
-  initial?: { company?: string; contact?: string; email?: string; threshold?: number; policy?: WalletPolicy };
+  initial?: { company?: string; contact?: string; email?: string; threshold?: number; policy?: WalletPolicy; currency?: Currency };
   onClose: () => void;
   onSubmit: (p: ClientFormValues) => Promise<void>;
 }) {
@@ -174,14 +178,16 @@ function ClientFormModal({ title, intro, submitLabel, initial, onClose, onSubmit
   const [email, setEmail] = useState(initial?.email ?? '');
   const [threshold, setThreshold] = useState(initial?.threshold ? String(initial.threshold / 100) : '');
   const [policy, setPolicy] = useState<WalletPolicy>(initial?.policy ?? 'BLOCK');
+  const [currency, setCurrency] = useState<Currency>(initial?.currency ?? 'INR');
   const [busy, setBusy] = useState(false);
   const valid = company.trim().length > 0;
+  const sym = CURRENCIES[currency].symbol.trim();
 
   const submit = async () => {
     if (busy || !valid) return;
     setBusy(true);
     try {
-      await onSubmit({ company, contact, email, threshold: Math.round((parseFloat(threshold || '0') || 0) * 100), policy });
+      await onSubmit({ company, contact, email, threshold: Math.round((parseFloat(threshold || '0') || 0) * 100), policy, currency });
     } finally { setBusy(false); }
   };
 
@@ -192,13 +198,20 @@ function ClientFormModal({ title, intro, submitLabel, initial, onClose, onSubmit
       <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Company name</label>
       <input value={company} onChange={e => setCompany(e.target.value)} placeholder="e.g. Rathore Timber Pvt Ltd" style={{ ...inputStyle, marginBottom: 14 }} />
 
+      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Contact person</label>
+      <input value={contact} onChange={e => setContact(e.target.value)} placeholder="e.g. Vikram Rao" style={{ ...inputStyle, marginBottom: 14 }} />
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
         <div>
-          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Contact person</label>
-          <input value={contact} onChange={e => setContact(e.target.value)} placeholder="e.g. Vikram Rao" style={inputStyle} />
+          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Currency</label>
+          <select value={currency} onChange={e => setCurrency(e.target.value as Currency)} style={{ ...inputStyle, background: '#fff' }}>
+            {(Object.keys(CURRENCIES) as Currency[]).map(c => (
+              <option key={c} value={c}>{CURRENCIES[c].option}</option>
+            ))}
+          </select>
         </div>
         <div>
-          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Low-balance alert (₹)</label>
+          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Low-balance alert ({sym})</label>
           <input type="number" value={threshold} onChange={e => setThreshold(e.target.value)} placeholder="0" style={{ ...inputStyle, fontFamily: "'IBM Plex Mono'" }} />
         </div>
       </div>
