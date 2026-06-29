@@ -36,7 +36,8 @@ export default function AdminClients({ state, openClient, openTopup, openNewClie
     .filter(c => filter === 'ALL' || c.st.key === filter)
     .filter(c => !q || c.company.toLowerCase().includes(q) || c.contact.toLowerCase().includes(q) || c.email.toLowerCase().includes(q));
 
-  const selectedIds = rows.filter(r => selected.has(r.id)).map(r => r.id);
+  const selectedRows = rows.filter(r => selected.has(r.id));
+  const selectedIds = selectedRows.map(r => r.id);
   const selCount = selectedIds.length;
   const allSelected = rows.length > 0 && rows.every(r => selected.has(r.id));
 
@@ -151,10 +152,26 @@ export default function AdminClients({ state, openClient, openTopup, openNewClie
 
       {confirming && (
         <ModalShell title="Delete clients" onClose={() => !busy && setConfirming(false)}>
-          <p style={{ fontSize: 13.5, color: '#3f4654', margin: '2px 0 8px', lineHeight: 1.5 }}>
-            Delete <strong>{selCount}</strong> client{selCount === 1 ? '' : 's'}? This also removes their
-            contracts, usage events and ledger history.
+          <p style={{ fontSize: 13.5, color: '#3f4654', margin: '2px 0 12px', lineHeight: 1.5 }}>
+            {selCount === 1 ? (
+              <>Delete <strong>{selectedRows[0]?.company}</strong>? This also removes their contracts, usage events and ledger history.</>
+            ) : (
+              <>Delete these <strong>{selCount}</strong> clients? This also removes their contracts, usage events and ledger history.</>
+            )}
           </p>
+          {selCount > 1 && (
+            <div style={{ maxHeight: 168, overflowY: 'auto', background: '#f8f9fb', border: '1px solid #eef0f3', borderRadius: 10, padding: '6px 4px', margin: '0 0 14px' }}>
+              {selectedRows.map(c => (
+                <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '6px 10px' }}>
+                  <Avatar text={c.initials} size={26} radius={7} />
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.company}</div>
+                    <div style={{ fontSize: 11.5, color: '#9aa1ad' }}>{c.balanceFmt}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           <p style={{ fontSize: 12.5, color: '#b5362b', margin: '0 0 20px' }}>This action cannot be undone.</p>
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={() => setConfirming(false)} disabled={busy} style={{ flex: 1, height: 42, border: '1px solid #dcdfe6', background: '#fff', color: '#3f4654', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
