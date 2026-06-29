@@ -1,14 +1,15 @@
 import { Card, Badge, TypeBadge } from '../ui';
-import { money, typeChip, evStatusChip, qtyLabel, CONTRACTS } from '../data';
+import { money, typeChip, evStatusChip, qtyLabel } from '../data';
 import type { AppState } from '../types';
 
 interface Props {
   state: AppState;
+  myId: string;
 }
 
 export default function StaffHistory({ state }: Props) {
-  const myEvents = state.events.filter(e => e.staff === 'Priya Sharma');
-  const cName = (id: string) => CONTRACTS.find(c => c.id === id)?.name || id;
+  const myEvents = state.events;
+  const cName = (id: string) => state.contracts.find(c => c.id === id)?.name || id;
 
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto', animation: 'lgFade .25s ease' }}>

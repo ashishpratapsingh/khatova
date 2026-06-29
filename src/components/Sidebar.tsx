@@ -10,12 +10,6 @@ interface NavItem {
   onClick: () => void;
 }
 
-interface PortalSwitch {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}
-
 interface Me {
   name: string;
   sub: string;
@@ -27,12 +21,11 @@ interface Me {
 interface Props {
   portalLabel: string;
   nav: NavItem[];
-  portalSwitch: PortalSwitch[];
   me: Me;
   onLogout: () => void;
 }
 
-export default function Sidebar({ portalLabel, nav, portalSwitch, me, onLogout }: Props) {
+export default function Sidebar({ portalLabel, nav, me, onLogout }: Props) {
   return (
     <aside style={{
       flex: '0 0 248px',
@@ -109,35 +102,9 @@ export default function Sidebar({ portalLabel, nav, portalSwitch, me, onLogout }
 
       {/* Bottom */}
       <div style={{ padding: 12 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', color: '#9aa1ad', padding: '0 4px 8px' }}>
-          DEMO · VIEW AS
-        </div>
-        <div style={{ display: 'flex', background: '#f1f3f6', borderRadius: 9, padding: 3, gap: 2 }}>
-          {portalSwitch.map(p => (
-            <button
-              key={p.label}
-              onClick={p.onClick}
-              style={{
-                flex: 1,
-                border: 'none',
-                borderRadius: 7,
-                padding: '7px 0',
-                fontSize: 12,
-                fontWeight: p.active ? 600 : 500,
-                cursor: 'pointer',
-                color: p.active ? '#161b26' : '#687184',
-                background: p.active ? '#fff' : 'transparent',
-                boxShadow: p.active ? '0 1px 2px rgba(16,24,40,.12)' : 'none',
-              }}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-
         <div
           onClick={onLogout}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 8px', marginTop: 8, borderRadius: 9, cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 8px', borderRadius: 9, cursor: 'pointer' }}
           onMouseEnter={e => (e.currentTarget.style.background = '#f1f3f6')}
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
         >

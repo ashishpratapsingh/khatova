@@ -8,6 +8,7 @@ export type Route =
   | 'client.dashboard' | 'client.statement' | 'client.contracts';
 
 export type ContractType = 'HOURLY' | 'MILESTONE' | 'SUBSCRIPTION' | 'METERED';
+export type ApprovalMode = 'MANUAL' | 'AUTO';
 export type EventStatus = 'PENDING' | 'BILLED' | 'REJECTED';
 export type ClientStatus = 'HEALTHY' | 'LOW' | 'NEGATIVE';
 export type WalletPolicy = 'BLOCK' | 'ALLOW' | 'PAUSE';
@@ -22,6 +23,32 @@ export interface ClientMeta {
   threshold: number;
   policy: WalletPolicy;
   last: string;
+  balance: number;
+}
+
+export interface UserRow {
+  id: string;
+  name: string;
+  email: string;
+  role: 'ADMIN' | 'STAFF' | 'CLIENT';
+  initials: string;
+}
+
+export interface ContractRateConfig {
+  kind: 'roles' | 'sub' | 'milestones' | 'units';
+  rows?: Array<{ label: string; key: string; sub?: string; amount: number; done?: boolean }>;
+  amount?: number;
+  interval?: string;
+  day?: number;
+}
+
+export interface Profile {
+  id: string;
+  full_name: string;
+  email: string;
+  role: Portal;
+  client_id: string | null;
+  initials: string;
 }
 
 export interface Contract {
@@ -82,7 +109,13 @@ export interface AppState {
   adjReason: string;
   rejectReason: string;
   toast: { msg: string; tone: 'ok' | 'warn' } | null;
+  // Live data folded in from the backend
   balances: Record<string, number>;
   events: UsageEvent[];
   ledgers: Record<string, LedgerEntry[]>;
+  clients: ClientMeta[];
+  contracts: Contract[];
+  ratesByContract: Record<string, ContractRateConfig>;
+  users: UserRow[];
+  loading: boolean;
 }

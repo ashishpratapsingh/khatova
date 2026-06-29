@@ -1,5 +1,5 @@
 import { Card, Badge, Avatar, Icon, TypeBadge } from '../ui';
-import { money, walletStatus, CLIENTS, CONTRACTS } from '../data';
+import { money, walletStatus } from '../data';
 import type { AppState } from '../types';
 
 interface Props {
@@ -12,11 +12,12 @@ interface Props {
 }
 
 export default function AdminClientDetail({ state, back, openTopup, openAdjust, openContract, setTab }: Props) {
-  const client = CLIENTS.find(c => c.id === state.selClient) || CLIENTS[0];
-  const bal = state.balances[state.selClient];
+  const client = state.clients.find(c => c.id === state.selClient) || state.clients[0];
+  if (!client) return null;
+  const bal = state.balances[state.selClient] ?? client.balance;
   const st = walletStatus(bal, client.threshold);
-  const led = (state.ledgers[state.selClient] || state.ledgers.c_acme || []);
-  const contracts = CONTRACTS.filter(c => c.clientId === state.selClient);
+  const led = state.ledgers[state.selClient] || [];
+  const contracts = state.contracts.filter(c => c.clientId === state.selClient);
   const tab = state.clientTab;
 
   const tabs = (['overview', 'ledger', 'contracts', 'settings'] as const).map(k => ({

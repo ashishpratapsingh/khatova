@@ -1,5 +1,5 @@
 import { Card, TypeBadge, Icon } from '../ui';
-import { money, typeChip, CONTRACTS, CONTRACT_RATES } from '../data';
+import { money, typeChip } from '../data';
 import type { AppState } from '../types';
 
 interface Props {
@@ -8,8 +8,9 @@ interface Props {
 }
 
 export default function AdminContractDetail({ state, back }: Props) {
-  const contract = CONTRACTS.find(c => c.id === state.selContract) || CONTRACTS[0];
-  const rate = CONTRACT_RATES[contract.id] || CONTRACT_RATES.k1;
+  const contract = state.contracts.find(c => c.id === state.selContract) || state.contracts[0];
+  if (!contract) return null;
+  const rate = state.ratesByContract[contract.id] || { kind: 'roles' as const, rows: [] };
   const tc = typeChip(contract.type);
   const events = state.events.filter(e => e.contractId === contract.id);
 

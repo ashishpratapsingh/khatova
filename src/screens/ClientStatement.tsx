@@ -1,15 +1,17 @@
 import { Card, Icon } from '../ui';
-import { money, CLIENTS, ACME_LEDGER, INITIAL_BALANCES } from '../data';
+import { money } from '../data';
 import type { AppState } from '../types';
 
 interface Props {
   state: AppState;
+  clientId: string;
 }
 
-export default function ClientStatement({ state }: Props) {
-  const client = CLIENTS.find(c => c.id === 'c_acme')!;
-  const bal = state.balances['c_acme'] ?? INITIAL_BALANCES['c_acme'];
-  const ledger = state.ledgers['c_acme']?.length ? state.ledgers['c_acme'] : ACME_LEDGER;
+export default function ClientStatement({ state, clientId }: Props) {
+  const client = state.clients.find(c => c.id === clientId) || state.clients[0];
+  if (!client) return null;
+  const bal = state.balances[client.id] ?? client.balance;
+  const ledger = state.ledgers[client.id] || [];
 
   const credited = ledger.filter(e => e.type === 'CREDIT' || e.type === 'ADJUSTMENT').reduce((s, e) => s + e.amount, 0);
   const debited = ledger.filter(e => e.type === 'DEBIT').reduce((s, e) => s + e.amount, 0);

@@ -1,25 +1,29 @@
 import { Card, TypeBadge, Icon } from '../ui';
-import { typeChip, CONTRACTS } from '../data';
+import { typeChip } from '../data';
+import type { AppState } from '../types';
 
 interface Props {
+  state: AppState;
   goLog: () => void;
   goLogForContract: (id: string) => void;
 }
 
-export default function StaffDashboard({ goLog, goLogForContract }: Props) {
-  const myContracts = CONTRACTS.filter(c => ['k1', 'k3'].includes(c.id));
+export default function StaffDashboard({ state, goLog, goLogForContract }: Props) {
+  const myContracts = state.contracts;
+  const hours = state.events.filter(e => e.type === 'HOURLY').reduce((a, e) => a + e.qty, 0);
+  const hoursByContract = (id: string) => state.events.filter(e => e.contractId === id && e.type === 'HOURLY').reduce((a, e) => a + e.qty, 0);
   const stats = [
-    { label: 'Hours this month', value: '50.5 h', color: '#161b26' },
-    { label: 'Pending approval', value: '2', color: '#8a5d08' },
-    { label: 'Billed this month', value: '3', color: '#0c6b4a' },
+    { label: 'Hours logged', value: `${hours} h`, color: '#161b26' },
+    { label: 'Pending approval', value: String(state.events.filter(e => e.status === 'PENDING').length), color: '#8a5d08' },
+    { label: 'Billed', value: String(state.events.filter(e => e.status === 'BILLED').length), color: '#0c6b4a' },
   ];
 
   return (
     <div style={{ maxWidth: 980, margin: '0 auto', animation: 'lgFade .25s ease' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'linear-gradient(135deg,#0e1726,#15243c)', borderRadius: 16, padding: '24px 26px', marginBottom: 20, color: '#fff' }}>
         <div>
-          <div style={{ fontSize: 13, color: '#9fb0cc', fontWeight: 500 }}>Welcome back, Priya</div>
-          <div style={{ fontSize: 21, fontWeight: 600, letterSpacing: '-0.4px', marginTop: 5 }}>You have 2 active contracts</div>
+          <div style={{ fontSize: 13, color: '#9fb0cc', fontWeight: 500 }}>Welcome back</div>
+          <div style={{ fontSize: 21, fontWeight: 600, letterSpacing: '-0.4px', marginTop: 5 }}>You have {myContracts.length} assigned contract{myContracts.length === 1 ? '' : 's'}</div>
         </div>
         <button
           onClick={goLog}
@@ -42,7 +46,7 @@ export default function StaffDashboard({ goLog, goLogForContract }: Props) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {myContracts.map(c => {
           const tc = typeChip(c.type);
-          const hours = c.id === 'k1' ? '42.5 h' : '8.0 h';
+          const loggedHours = `${hoursByContract(c.id)} h`;
           return (
             <div key={c.id} style={{ background: '#fff', border: '1px solid #e7e9ee', borderRadius: 14, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -54,7 +58,7 @@ export default function StaffDashboard({ goLog, goLogForContract }: Props) {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 11.5, color: '#9aa1ad' }}>Logged this month</div>
-                <div style={{ fontSize: 15, fontWeight: 600, fontFamily: "'IBM Plex Mono'", marginTop: 2 }}>{hours}</div>
+                <div style={{ fontSize: 15, fontWeight: 600, fontFamily: "'IBM Plex Mono'", marginTop: 2 }}>{loggedHours}</div>
               </div>
               <button
                 onClick={() => goLogForContract(c.id)}

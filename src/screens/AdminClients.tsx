@@ -1,5 +1,5 @@
 import { Card, Badge, Avatar, Icon } from '../ui';
-import { money, walletStatus, CLIENTS } from '../data';
+import { money, walletStatus } from '../data';
 import type { AppState } from '../types';
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function AdminClients({ state, openClient, openTopup, openAddUser }: Props) {
-  const rows = CLIENTS.map(c => {
+  const rows = state.clients.map(c => {
     const b = state.balances[c.id];
     const st = walletStatus(b, c.threshold);
     return { ...c, balance: b, balanceFmt: money(b, false), balanceColor: b < 0 ? '#b5362b' : '#161b26', st };

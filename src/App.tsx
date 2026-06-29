@@ -1,10 +1,10 @@
-import { useAppState } from './useAppState';
+import { useApp } from './lib/store';
 import Login from './components/Login';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Toast from './components/Toast';
 import { TopupModal, AdjustModal, RejectModal, AddUserModal } from './components/Modals';
-import type { Route } from './types';
+import type { Route, Portal } from './types';
 
 // Screens
 import AdminDashboard from './screens/AdminDashboard';
@@ -22,15 +22,6 @@ import StaffHistory from './screens/StaffHistory';
 import ClientWallet from './screens/ClientWallet';
 import ClientStatement from './screens/ClientStatement';
 import ClientContracts from './screens/ClientContracts';
-
-type Portal = 'admin' | 'staff' | 'client';
-
-function portalOf(route: Route): Portal | null {
-  if (route === 'login') return null;
-  if (route.startsWith('admin.')) return 'admin';
-  if (route.startsWith('staff.')) return 'staff';
-  return 'client';
-}
 
 const PAGE_META: Record<string, { title: string; sub: string }> = {
   'admin.dashboard': { title: 'Dashboard', sub: 'Overview of wallets, approvals and usage' },
@@ -50,32 +41,39 @@ const PAGE_META: Record<string, { title: string; sub: string }> = {
   'client.contracts': { title: 'Contracts', sub: 'Your active service contracts and rates' },
 };
 
-const ME_MAP: Record<Portal, { name: string; sub: string; initials: string; badgeBg: string; badgeFg: string }> = {
-  admin: { name: 'Maya Kapoor', sub: 'Admin', initials: 'MK', badgeBg: '#eaf1fe', badgeFg: '#1f6feb' },
-  staff: { name: 'Priya Sharma', sub: 'Staff', initials: 'PS', badgeBg: '#efecfb', badgeFg: '#6b4ee0' },
-  client: { name: 'Vikram Rao', sub: 'Acme Retail', initials: 'VR', badgeBg: '#e0f2f0', badgeFg: '#0c7a72' },
+const ROLE_BADGE: Record<Portal, { bg: string; fg: string; label: string }> = {
+  admin: { bg: '#eaf1fe', fg: '#1f6feb', label: 'Admin' },
+  staff: { bg: '#efecfb', fg: '#6b4ee0', label: 'Staff' },
+  client: { bg: '#e0f2f0', fg: '#0c7a72', label: 'Client' },
 };
 
 export default function App() {
-  const app = useAppState();
-  const { state } = app;
-  const portal = portalOf(state.route);
+  const app = useApp();
+  const { state, profile, portal, session, authLoading } = app;
 
-  if (state.route === 'login') {
+  if (authLoading) {
+    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9aa1ad', fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>Loading…</div>;
+  }
+
+  if (!session || !profile || state.route === 'login') {
     return (
       <>
-        <Login
-          onLoginAdmin={() => app.goPortal('admin')}
-          onLoginStaff={() => app.goPortal('staff')}
-          onLoginClient={() => app.goPortal('client')}
-        />
+        <Login onSubmit={app.login} error={app.authError} />
         {state.toast && <Toast msg={state.toast.msg} tone={state.toast.tone} />}
       </>
     );
   }
 
   const currentPortal = portal!;
-  const me = ME_MAP[currentPortal];
+  const badge = ROLE_BADGE[currentPortal];
+  const clientCompany = profile.client_id ? (state.clients.find(c => c.id === profile.client_id)?.company ?? 'Client') : '';
+  const me = {
+    name: profile.full_name,
+    sub: currentPortal === 'client' ? clientCompany : badge.label,
+    initials: profile.initials,
+    badgeBg: badge.bg,
+    badgeFg: badge.fg,
+  };
   const pendingCount = state.events.filter(e => e.status === 'PENDING').length;
 
   const nav = currentPortal === 'admin'
@@ -99,13 +97,8 @@ export default function App() {
         { icon: 'description', label: 'Contracts', route: 'client.contracts' as Route, active: state.route === 'client.contracts', onClick: () => app.go('client.contracts') },
       ];
 
-  const portalSwitch = [
-    { label: 'Admin', active: currentPortal === 'admin', onClick: () => app.goPortal('admin') },
-    { label: 'Staff', active: currentPortal === 'staff', onClick: () => app.goPortal('staff') },
-    { label: 'Client', active: currentPortal === 'client', onClick: () => app.goPortal('client') },
-  ];
-
   const meta = PAGE_META[state.route] ?? { title: 'Khatova', sub: '' };
+  const clientId = profile.client_id ?? '';
 
   const renderScreen = () => {
     switch (state.route) {
@@ -116,36 +109,35 @@ export default function App() {
       case 'admin.clientDetail':
         return <AdminClientDetail state={state} back={() => app.go('admin.clients')} openTopup={app.openTopup} openAdjust={app.openAdjust} openContract={app.openContract} setTab={app.setClientTab} />;
       case 'admin.contracts':
-        return <AdminContracts openContract={app.openContract} goNewContract={() => app.go('admin.newContract')} />;
+        return <AdminContracts state={state} openContract={app.openContract} goNewContract={() => app.go('admin.newContract')} />;
       case 'admin.contractDetail':
         return <AdminContractDetail state={state} back={() => app.go('admin.contracts')} />;
       case 'admin.newContract':
-        return <AdminNewContract state={state} setNewType={app.setNewType} goContracts={() => app.go('admin.contracts')} saveContract={() => { app.flash('Contract created'); app.go('admin.contracts'); }} />;
+        return <AdminNewContract state={state} setNewType={app.setNewType} goContracts={() => app.go('admin.contracts')} createContract={app.createContract} />;
       case 'admin.approvals':
         return <AdminApprovals state={state} approve={app.approve} openReject={app.openReject} />;
       case 'admin.reports':
-        return <AdminReports />;
+        return <AdminReports state={state} />;
       case 'admin.users':
-        return <AdminTeam openAddUser={app.openAddUser} />;
+        return <AdminTeam state={state} openAddUser={app.openAddUser} />;
       case 'staff.dashboard':
-        return <StaffDashboard goLog={() => app.go('staff.log')} goLogForContract={(id) => { app.setLogContract(id); app.go('staff.log'); }} />;
+        return <StaffDashboard state={state} goLog={() => app.go('staff.log')} goLogForContract={(id) => { app.setLogContract(id); app.go('staff.log'); }} />;
       case 'staff.log':
         return <StaffLog
           state={state}
           setContract={app.setLogContract}
           setUnit={(k) => app.update('logUnit', k)}
           setQty={(q) => app.update('logQty', q)}
-          submit={app.submitLog}
-          reset={() => { app.update('logQty', ''); app.update('logUnit', ''); }}
+          submit={app.logUsage}
         />;
       case 'staff.history':
-        return <StaffHistory state={state} />;
+        return <StaffHistory state={state} myId={profile.id} />;
       case 'client.dashboard':
-        return <ClientWallet state={state} openTopup={app.openTopup} />;
+        return <ClientWallet state={state} clientId={clientId} />;
       case 'client.statement':
-        return <ClientStatement state={state} />;
+        return <ClientStatement state={state} clientId={clientId} />;
       case 'client.contracts':
-        return <ClientContracts />;
+        return <ClientContracts state={state} />;
       default:
         return null;
     }
@@ -156,7 +148,6 @@ export default function App() {
       <Sidebar
         portalLabel={currentPortal === 'admin' ? 'ADMIN PORTAL' : currentPortal === 'staff' ? 'STAFF PORTAL' : 'CLIENT PORTAL'}
         nav={nav}
-        portalSwitch={portalSwitch}
         me={me}
         onLogout={app.logout}
       />
@@ -169,16 +160,19 @@ export default function App() {
       </div>
 
       {state.modal === 'topup' && (
-        <TopupModal state={state} onClose={app.closeModal} onSubmit={app.submitTopup} />
+        <TopupModal data={state.modalData} onClose={app.closeModal}
+          onSubmit={(amt, method, ref) => app.topup(state.modalData.id, amt, method, ref)} />
       )}
       {state.modal === 'adjust' && (
-        <AdjustModal state={state} onClose={app.closeModal} onSubmit={app.submitAdjust} />
+        <AdjustModal data={state.modalData} onClose={app.closeModal}
+          onSubmit={(amt, dir, reason) => app.adjust(state.modalData.id, amt, dir, reason)} />
       )}
       {state.modal === 'reject' && (
-        <RejectModal state={state} onClose={app.closeModal} onSubmit={app.submitReject} />
+        <RejectModal data={state.modalData} onClose={app.closeModal}
+          onSubmit={(reason) => app.reject(state.modalData.id, reason)} />
       )}
       {state.modal === 'adduser' && (
-        <AddUserModal onClose={app.closeModal} onSubmit={app.submitInvite} />
+        <AddUserModal clients={state.clients} onClose={app.closeModal} onSubmit={app.inviteUser} />
       )}
 
       {state.toast && <Toast msg={state.toast.msg} tone={state.toast.tone} />}

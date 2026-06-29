@@ -1,12 +1,14 @@
 import { Card, Badge, TypeBadge, Icon } from '../ui';
-import { CONTRACTS, typeChip } from '../data';
+import { typeChip } from '../data';
+import type { AppState } from '../types';
 
 interface Props {
+  state: AppState;
   openContract: (id: string) => void;
   goNewContract: () => void;
 }
 
-export default function AdminContracts({ openContract, goNewContract }: Props) {
+export default function AdminContracts({ state, openContract, goNewContract }: Props) {
   const stMap: Record<string, { label: string; bg: string; fg: string }> = {
     ACTIVE: { label: 'Active', bg: '#e3f3ec', fg: '#0c6b4a' },
     PAUSED: { label: 'Paused', bg: '#fbf0d9', fg: '#8a5d08' },
@@ -34,7 +36,7 @@ export default function AdminContracts({ openContract, goNewContract }: Props) {
         <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.3fr 1.2fr 1.2fr 1fr 40px', padding: '11px 20px', borderBottom: '1px solid #eef0f3', fontSize: 11.5, fontWeight: 600, color: '#9aa1ad', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
           <div>Contract</div><div>Client</div><div>Rate</div><div>Type</div><div style={{ textAlign: 'center' }}>Status</div><div />
         </div>
-        {CONTRACTS.map(c => {
+        {state.contracts.map(c => {
           const tc = typeChip(c.type);
           const st = stMap[c.status];
           return (

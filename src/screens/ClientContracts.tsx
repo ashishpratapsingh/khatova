@@ -1,15 +1,16 @@
 import { TypeBadge, Badge, Icon } from '../ui';
-import { money, typeChip, CONTRACT_RATES, CONTRACTS } from '../data';
+import { money, typeChip } from '../data';
+import type { AppState } from '../types';
 
-export default function ClientContracts() {
-  const myContracts = CONTRACTS.filter(c => c.clientId === 'c_acme');
+export default function ClientContracts({ state }: { state: AppState }) {
+  const myContracts = state.contracts;
 
   return (
     <div style={{ maxWidth: 860, margin: '0 auto', animation: 'lgFade .25s ease' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {myContracts.map(c => {
           const tc = typeChip(c.type);
-          const rates = CONTRACT_RATES[c.id];
+          const rates = state.ratesByContract[c.id];
           const statusBg = c.status === 'ACTIVE' ? '#e3f3ec' : '#eef0f3';
           const statusFg = c.status === 'ACTIVE' ? '#0c6b4a' : '#7a8190';
           return (

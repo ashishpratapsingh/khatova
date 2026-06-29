@@ -1,7 +1,6 @@
 import { Card, Icon, Badge, Avatar } from '../ui';
 import { money, walletStatus } from '../data';
 import type { AppState } from '../types';
-import { CLIENTS } from '../data';
 
 interface Props {
   state: AppState;
@@ -12,8 +11,10 @@ interface Props {
 }
 
 export default function AdminDashboard({ state, goClients, goApprovals, openClient, openTopup }: Props) {
+  const CLIENTS = state.clients;
   const pending = state.events.filter(e => e.status === 'PENDING');
   const pendingAmt = pending.reduce((a, e) => a + e.amount, 0);
+  const billedThisMonth = state.events.filter(e => e.status === 'BILLED').reduce((a, e) => a + e.amount, 0);
   const totalHeld = CLIENTS.reduce((a, c) => a + (state.balances[c.id] || 0), 0);
   const clientRows = CLIENTS.map(c => {
     const b = state.balances[c.id];
@@ -27,7 +28,7 @@ export default function AdminDashboard({ state, goClients, goApprovals, openClie
     { label: 'Total balance held', value: money(totalHeld, false), sub: `${CLIENTS.length} active wallets`, icon: 'account_balance_wallet', bg: '#eaf1fe', fg: '#1f6feb' },
     { label: 'Pending approvals', value: String(pending.length), sub: `${money(pendingAmt, false)} to bill`, icon: 'fact_check', bg: '#fbf0d9', fg: '#8a5d08' },
     { label: 'Needs attention', value: String(attention.length), sub: 'low or negative wallets', icon: 'warning', bg: '#fbe9e7', fg: '#b5362b' },
-    { label: 'Billed this month', value: money(20100000, false), sub: 'usage across all clients', icon: 'trending_up', bg: '#e3f3ec', fg: '#0c6b4a' },
+    { label: 'Billed this month', value: money(billedThisMonth, false), sub: 'usage across all clients', icon: 'trending_up', bg: '#e3f3ec', fg: '#0c6b4a' },
   ];
 
   return (

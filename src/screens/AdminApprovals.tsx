@@ -1,5 +1,5 @@
 import { TypeBadge, Icon } from '../ui';
-import { money, typeChip, qtyLabel, CONTRACTS } from '../data';
+import { money, typeChip, qtyLabel } from '../data';
 import type { AppState } from '../types';
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
 
 export default function AdminApprovals({ state, approve, openReject }: Props) {
   const pending = state.events.filter(e => e.status === 'PENDING');
-  const cName = (id: string) => CONTRACTS.find(c => c.id === id)?.name || id;
+  const cName = (id: string) => state.contracts.find(c => c.id === id)?.name || id;
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', animation: 'lgFade .25s ease' }}>

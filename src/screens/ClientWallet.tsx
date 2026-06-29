@@ -1,16 +1,19 @@
 import { Icon } from '../ui';
-import { money, CLIENTS, ACME_LEDGER, INITIAL_BALANCES } from '../data';
+import { money } from '../data';
 import type { AppState } from '../types';
 
 interface Props {
   state: AppState;
-  openTopup: (id: string) => void;
+  clientId: string;
 }
 
-export default function ClientWallet({ state, openTopup }: Props) {
-  const client = CLIENTS.find(c => c.id === 'c_acme')!;
-  const bal = state.balances['c_acme'] ?? INITIAL_BALANCES['c_acme'];
-  const ledger = (state.ledgers['c_acme']?.length ? state.ledgers['c_acme'] : ACME_LEDGER).slice(0, 8);
+export default function ClientWallet({ state, clientId }: Props) {
+  const client = state.clients.find(c => c.id === clientId) || state.clients[0];
+  if (!client) return null;
+  const bal = state.balances[client.id] ?? client.balance;
+  const ledger = (state.ledgers[client.id] || []).slice(0, 8);
+  const spent = ledger.filter(e => e.type === 'DEBIT').reduce((s, e) => s + e.amount, 0);
+  const activeContracts = state.contracts.filter(c => c.status === 'ACTIVE').length;
 
   return (
     <div style={{ maxWidth: 860, margin: '0 auto', animation: 'lgFade .25s ease' }}>
@@ -19,20 +22,17 @@ export default function ClientWallet({ state, openTopup }: Props) {
           <div>
             <div style={{ fontSize: 13, color: '#9fb0cc', fontWeight: 500, marginBottom: 6 }}>Wallet balance</div>
             <div style={{ fontSize: 38, fontWeight: 700, fontFamily: "'IBM Plex Mono'", letterSpacing: '-1px', lineHeight: 1 }}>{money(bal, false)}</div>
-            <div style={{ fontSize: 12.5, color: '#9fb0cc', marginTop: 10 }}>{client.company} · Auto top-up off</div>
+            <div style={{ fontSize: 12.5, color: '#9fb0cc', marginTop: 10 }}>{client.company}</div>
           </div>
-          <button
-            onClick={() => openTopup('c_acme')}
-            style={{ height: 42, background: '#1f6feb', color: '#fff', border: 'none', borderRadius: 10, padding: '0 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7 }}
-          >
-            <Icon name="add" size={20} color="#fff" />Add funds
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, height: 42, background: 'rgba(255,255,255,.08)', color: '#cdd9ee', borderRadius: 10, padding: '0 16px', fontSize: 13 }}>
+            <Icon name="info" size={18} color="#9fb0cc" />Contact your account manager to add funds
+          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 28 }}>
           {[
-            { label: 'Spent this month', value: '₹4,45,000' },
-            { label: 'Active contracts', value: '2' },
+            { label: 'Spent (recent)', value: money(spent, false) },
+            { label: 'Active contracts', value: String(activeContracts) },
             { label: 'Alert threshold', value: money(client.threshold, false) },
           ].map(s => (
             <div key={s.label} style={{ background: 'rgba(255,255,255,.07)', borderRadius: 12, padding: '14px 16px' }}>

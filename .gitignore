@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Local env (the local supabase key is a well-known demo key; hosted keys must stay out of git)
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
