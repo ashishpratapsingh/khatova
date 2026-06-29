@@ -15,6 +15,7 @@ const DEMO = [
 export default function Login({ onSubmit, error }: Props) {
   const [email, setEmail] = useState('maya@khatova.app');
   const [password, setPassword] = useState('khatova123');
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const submit = async () => {
@@ -65,13 +66,24 @@ export default function Login({ onSubmit, error }: Props) {
             style={{ width: '100%', height: 44, border: '1px solid #dcdfe6', borderRadius: 10, padding: '0 13px', fontSize: 14, color: '#161b26', background: '#fff', marginBottom: 16, boxSizing: 'border-box' }}
           />
           <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#3f4654', marginBottom: 7 }}>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && submit()}
-            style={{ width: '100%', height: 44, border: '1px solid #dcdfe6', borderRadius: 10, padding: '0 13px', fontSize: 14, color: '#161b26', background: '#fff', marginBottom: error ? 10 : 20, boxSizing: 'border-box' }}
-          />
+          <div style={{ position: 'relative', marginBottom: error ? 10 : 20 }}>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && submit()}
+              style={{ width: '100%', height: 44, border: '1px solid #dcdfe6', borderRadius: 10, padding: '0 44px 0 13px', fontSize: 14, color: '#161b26', background: '#fff', boxSizing: 'border-box' }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(v => !v)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              title={showPassword ? 'Hide password' : 'Show password'}
+              style={{ position: 'absolute', top: 0, right: 0, height: 44, width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', cursor: 'pointer', color: '#9aa1ad' }}
+            >
+              <Icon name={showPassword ? 'visibility_off' : 'visibility'} size={20} />
+            </button>
+          </div>
 
           {error && (
             <div style={{ background: '#fbe9e7', color: '#b5362b', fontSize: 13, fontWeight: 500, borderRadius: 9, padding: '10px 12px', marginBottom: 16 }}>
