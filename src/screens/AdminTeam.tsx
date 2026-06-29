@@ -13,7 +13,7 @@ export default function AdminTeam({ state, openAddUser }: Props) {
   const USERS = state.users;
   return (
     <div style={{ maxWidth: 1080, margin: '0 auto', animation: 'lgFade .25s ease' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+      <div className="k-wrap" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
         <div style={{ display: 'flex', gap: 6, background: '#fff', border: '1px solid #e7e9ee', borderRadius: 10, padding: 4 }}>
           {['Everyone', 'Staff', 'Clients', 'Admins'].map((f, i) => (
             <span key={f} style={{ fontSize: 12.5, fontWeight: i === 0 ? 600 : 500, color: i === 0 ? '#1f6feb' : '#687184', background: i === 0 ? '#eaf1fe' : 'transparent', padding: '6px 12px', borderRadius: 7, cursor: 'pointer' }}>{f}</span>
@@ -28,7 +28,7 @@ export default function AdminTeam({ state, openAddUser }: Props) {
         </button>
       </div>
 
-      <Card>
+      <Card className="k-scroll">
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1fr 1.1fr', padding: '11px 20px', borderBottom: '1px solid #eef0f3', fontSize: 11.5, fontWeight: 600, color: '#9aa1ad', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
           <div>User</div><div>Role</div><div>Status</div><div style={{ textAlign: 'right' }}>Last active</div>
         </div>

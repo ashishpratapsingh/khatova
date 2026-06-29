@@ -32,7 +32,7 @@ export default function AdminContractDetail({ state, back }: Props) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 18, alignItems: 'start' }}>
+      <div className="rg-2" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 18, alignItems: 'start' }}>
         <Card>
           <div style={{ padding: '15px 20px', borderBottom: '1px solid #eef0f3', fontSize: 15, fontWeight: 600 }}>Rate configuration</div>
           {rate.kind === 'sub' && (

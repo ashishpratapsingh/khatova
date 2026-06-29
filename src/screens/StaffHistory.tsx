@@ -13,7 +13,7 @@ export default function StaffHistory({ state }: Props) {
 
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto', animation: 'lgFade .25s ease' }}>
-      <Card>
+      <Card className="k-scroll">
         <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1.5fr 1fr 1fr 1fr', padding: '11px 20px', borderBottom: '1px solid #eef0f3', fontSize: 11.5, fontWeight: 600, color: '#9aa1ad', letterSpacing: '0.03em', textTransform: 'uppercase' as const }}>
           <div>Work</div><div>Contract</div><div>Logged</div><div>Status</div><div style={{ textAlign: 'right' }}>Amount</div>
         </div>

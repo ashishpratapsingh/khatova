@@ -25,9 +25,9 @@ export default function Login({ onSubmit, error }: Props) {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', animation: 'lgFade .4s ease' }}>
+    <div className="k-login" style={{ display: 'flex', minHeight: '100vh', animation: 'lgFade .4s ease' }}>
       {/* Left panel */}
-      <div style={{
+      <div className="k-login-aside" style={{
         flex: '0 0 44%',
         background: 'linear-gradient(160deg,#0e1726 0%,#0b1220 60%,#0a1a2e 100%)',
         color: '#fff', padding: '56px 56px 48px', display: 'flex', flexDirection: 'column',

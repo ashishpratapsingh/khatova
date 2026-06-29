@@ -53,10 +53,10 @@ export function TypeBadge({ label, bg, fg }: TypeBadgeProps) {
   );
 }
 
-interface CardProps { children: ReactNode; style?: CSSProperties; }
-export function Card({ children, style }: CardProps) {
+interface CardProps { children: ReactNode; style?: CSSProperties; className?: string; }
+export function Card({ children, style, className }: CardProps) {
   return (
-    <div style={{
+    <div className={className} style={{
       background: '#fff',
       border: '1px solid #e7e9ee',
       borderRadius: 14,

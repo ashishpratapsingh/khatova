@@ -20,7 +20,7 @@ export default function StaffDashboard({ state, goLog, goLogForContract }: Props
 
   return (
     <div style={{ maxWidth: 980, margin: '0 auto', animation: 'lgFade .25s ease' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'linear-gradient(135deg,#0e1726,#15243c)', borderRadius: 16, padding: '24px 26px', marginBottom: 20, color: '#fff' }}>
+      <div className="k-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, background: 'linear-gradient(135deg,#0e1726,#15243c)', borderRadius: 16, padding: '24px 26px', marginBottom: 20, color: '#fff' }}>
         <div>
           <div style={{ fontSize: 13, color: '#9fb0cc', fontWeight: 500 }}>Welcome back</div>
           <div style={{ fontSize: 21, fontWeight: 600, letterSpacing: '-0.4px', marginTop: 5 }}>You have {myContracts.length} assigned contract{myContracts.length === 1 ? '' : 's'}</div>
@@ -33,7 +33,7 @@ export default function StaffDashboard({ state, goLog, goLogForContract }: Props
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 22 }}>
+      <div className="rg-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 22 }}>
         {stats.map(s => (
           <Card key={s.label} style={{ padding: 18 }}>
             <div style={{ fontSize: 12.5, color: '#687184', fontWeight: 500 }}>{s.label}</div>
@@ -48,7 +48,7 @@ export default function StaffDashboard({ state, goLog, goLogForContract }: Props
           const tc = typeChip(c.type);
           const loggedHours = `${hoursByContract(c.id)} h`;
           return (
-            <div key={c.id} style={{ background: '#fff', border: '1px solid #e7e9ee', borderRadius: 14, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div key={c.id} className="k-wrap" style={{ background: '#fff', border: '1px solid #e7e9ee', borderRadius: 14, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                   <span style={{ fontSize: 15, fontWeight: 600 }}>{c.name}</span>

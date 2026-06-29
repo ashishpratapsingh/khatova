@@ -23,17 +23,24 @@ interface Props {
   nav: NavItem[];
   me: Me;
   onLogout: () => void;
+  mobile?: boolean;
+  open?: boolean;
+  onClose?: () => void;
 }
 
-export default function Sidebar({ portalLabel, nav, me, onLogout }: Props) {
+export default function Sidebar({ portalLabel, nav, me, onLogout, mobile, open, onClose }: Props) {
+  const handleNav = (fn: () => void) => { fn(); if (mobile) onClose?.(); };
   return (
-    <aside style={{
+    <aside
+      className={mobile ? `k-drawer ${open ? 'open' : 'closed'}` : undefined}
+      style={{
       flex: '0 0 248px',
+      width: 248,
       background: '#fff',
       borderRight: '1px solid #e7e9ee',
       display: 'flex',
       flexDirection: 'column',
-      position: 'sticky',
+      position: mobile ? 'fixed' : 'sticky',
       top: 0,
       height: '100vh',
     }}>
@@ -57,7 +64,7 @@ export default function Sidebar({ portalLabel, nav, me, onLogout }: Props) {
           {nav.map(item => (
             <button
               key={item.route}
-              onClick={item.onClick}
+              onClick={() => handleNav(item.onClick)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -103,7 +110,7 @@ export default function Sidebar({ portalLabel, nav, me, onLogout }: Props) {
       {/* Bottom */}
       <div style={{ padding: 12 }}>
         <div
-          onClick={onLogout}
+          onClick={() => handleNav(onLogout)}
           style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 8px', borderRadius: 9, cursor: 'pointer' }}
           onMouseEnter={e => (e.currentTarget.style.background = '#f1f3f6')}
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}

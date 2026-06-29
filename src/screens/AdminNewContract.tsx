@@ -96,7 +96,7 @@ export default function AdminNewContract({ state, setNewType, goContracts, creat
       </button>
 
       <div style={{ background: '#fff', border: '1px solid #e7e9ee', borderRadius: 16, boxShadow: '0 1px 2px rgba(16,24,40,.03)', padding: '26px 28px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 22 }}>
+        <div className="rg-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 22 }}>
           <div>
             <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 7 }}>Client</label>
             <select value={clientId} onChange={e => setClientId(e.target.value)} style={{ width: '100%', height: 44, border: '1px solid #dcdfe6', borderRadius: 10, padding: '0 13px', fontSize: 13.5, background: '#fff' }}>
@@ -110,7 +110,7 @@ export default function AdminNewContract({ state, setNewType, goContracts, creat
         </div>
 
         <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 9 }}>Billing type</label>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10, marginBottom: 24 }}>
+        <div className="rg-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10, marginBottom: 24 }}>
           {TYPE_CARDS.map(c => {
             const active = nt === c.key;
             return (
@@ -130,7 +130,7 @@ export default function AdminNewContract({ state, setNewType, goContracts, creat
           {nt === 'MILESTONE' && <RowEditor rows={msRows} set={setMsRows} addLabel="Add milestone" />}
           {nt === 'METERED' && <RowEditor rows={unitRows} set={setUnitRows} addLabel="Add unit" />}
           {nt === 'SUBSCRIPTION' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+            <div className="rg-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
               <div>
                 <label style={{ display: 'block', fontSize: 11.5, color: '#687184', marginBottom: 6 }}>Amount (₹)</label>
                 <input type="number" value={subAmt} onChange={e => setSubAmt(e.target.value)} style={{ ...rowInput, width: '100%', fontFamily: "'IBM Plex Mono'" }} />
@@ -147,7 +147,7 @@ export default function AdminNewContract({ state, setNewType, goContracts, creat
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
+        <div className="rg-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
           <div>
             <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 7 }}>Approval mode</label>
             <div style={{ display: 'flex', background: '#f1f3f6', borderRadius: 9, padding: 3 }}>

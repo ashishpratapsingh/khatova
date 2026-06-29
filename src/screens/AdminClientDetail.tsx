@@ -37,7 +37,7 @@ export default function AdminClientDetail({ state, back, openTopup, openAdjust, 
         <Icon name="arrow_back" size={18} />All clients
       </button>
 
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 22 }}>
+      <div className="k-wrap" style={{ display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 22 }}>
         <Avatar text={client.initials} size={56} radius={13} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -70,7 +70,7 @@ export default function AdminClientDetail({ state, back, openTopup, openAdjust, 
       {/* Overview */}
       {tab === 'overview' && (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr 1fr 1fr', gap: 16, marginBottom: 22 }}>
+          <div className="rg-4" style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr 1fr 1fr', gap: 16, marginBottom: 22 }}>
             <Card style={{ padding: 18 }}>
               <div style={{ fontSize: 12.5, color: '#687184', fontWeight: 500 }}>Current balance</div>
               <div style={{ fontSize: 26, fontWeight: 600, fontFamily: "'IBM Plex Mono'", letterSpacing: '-0.6px', marginTop: 8, color: bal < 0 ? '#b5362b' : '#161b26' }}>{money(bal, false)}</div>
@@ -115,7 +115,7 @@ export default function AdminClientDetail({ state, back, openTopup, openAdjust, 
 
       {/* Ledger */}
       {tab === 'ledger' && (
-        <Card>
+        <Card className="k-scroll">
           <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 110px 130px 130px', padding: '11px 20px', borderBottom: '1px solid #eef0f3', fontSize: 11.5, fontWeight: 600, color: '#9aa1ad', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
             <div>Date</div><div>Description</div><div>Type</div><div style={{ textAlign: 'right' }}>Amount</div><div style={{ textAlign: 'right' }}>Balance</div>
           </div>
@@ -187,7 +187,7 @@ export default function AdminClientDetail({ state, back, openTopup, openAdjust, 
           <Card style={{ padding: 20 }}>
             <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Negative-balance policy</div>
             <p style={{ fontSize: 13, color: '#687184', margin: '0 0 16px' }}>What happens when a charge exceeds available funds.</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+            <div className="rg-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
               {policyOpts.map(p => {
                 const active = client.policy === p.k;
                 return (

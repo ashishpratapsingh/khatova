@@ -26,8 +26,8 @@ export default function ClientStatement({ state, clientId }: Props) {
 
   return (
     <div style={{ maxWidth: 980, margin: '0 auto', animation: 'lgFade .25s ease' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-        <div style={{ fontSize: 13.5, color: '#687184' }}>June 2026 · {client.company}</div>
+      <div className="k-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 18 }}>
+        <div style={{ fontSize: 13.5, color: '#687184' }}>{client.company} · Statement</div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button style={{ height: 36, border: '1px solid #dcdfe6', background: '#fff', color: '#3f4654', borderRadius: 9, padding: '0 14px', fontSize: 13, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Icon name="download" size={17} color="#687184" />CSV
@@ -38,7 +38,7 @@ export default function ClientStatement({ state, clientId }: Props) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 14, marginBottom: 20 }}>
+      <div className="rg-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 14, marginBottom: 20 }}>
         {summary.map(s => (
           <Card key={s.label} style={{ padding: '16px 18px' }}>
             <div style={{ fontSize: 12, color: '#687184', fontWeight: 500, marginBottom: 6 }}>{s.label}</div>
@@ -47,7 +47,7 @@ export default function ClientStatement({ state, clientId }: Props) {
         ))}
       </div>
 
-      <Card>
+      <Card className="k-scroll">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr 1fr 1fr 1fr', padding: '11px 20px', borderBottom: '1px solid #eef0f3', fontSize: 11.5, fontWeight: 600, color: '#9aa1ad', letterSpacing: '0.03em', textTransform: 'uppercase' as const }}>
           <div>Date</div><div>Description</div><div>Type</div><div style={{ textAlign: 'right' }}>Amount</div><div style={{ textAlign: 'right' }}>Balance</div>
         </div>

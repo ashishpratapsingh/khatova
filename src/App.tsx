@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { useApp } from './lib/store';
+import { useIsMobile } from './lib/useMediaQuery';
 import Login from './components/Login';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -50,6 +52,8 @@ const ROLE_BADGE: Record<Portal, { bg: string; fg: string; label: string }> = {
 export default function App() {
   const app = useApp();
   const { state, profile, portal, session, authLoading } = app;
+  const isMobile = useIsMobile();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   if (authLoading) {
     return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9aa1ad', fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>Loading…</div>;
@@ -143,18 +147,27 @@ export default function App() {
     }
   };
 
+  const portalLabel = currentPortal === 'admin' ? 'ADMIN PORTAL' : currentPortal === 'staff' ? 'STAFF PORTAL' : 'CLIENT PORTAL';
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f6f7f9', fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>
-      <Sidebar
-        portalLabel={currentPortal === 'admin' ? 'ADMIN PORTAL' : currentPortal === 'staff' ? 'STAFF PORTAL' : 'CLIENT PORTAL'}
-        nav={nav}
-        me={me}
-        onLogout={app.logout}
-      />
+      {!isMobile && (
+        <Sidebar portalLabel={portalLabel} nav={nav} me={me} onLogout={app.logout} />
+      )}
+
+      {isMobile && drawerOpen && (
+        <div className="k-backdrop" onClick={() => setDrawerOpen(false)} />
+      )}
+      {isMobile && (
+        <Sidebar
+          portalLabel={portalLabel} nav={nav} me={me} onLogout={app.logout}
+          mobile open={drawerOpen} onClose={() => setDrawerOpen(false)}
+        />
+      )}
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Header title={meta.title} sub={meta.sub} me={me} />
-        <main style={{ flex: 1, padding: '24px 28px', overflowY: 'auto' }}>
+        <Header title={meta.title} sub={meta.sub} me={me} onMenu={isMobile ? () => setDrawerOpen(true) : undefined} />
+        <main className="k-main" style={{ flex: 1, padding: '24px 28px', overflowY: 'auto' }}>
           {renderScreen()}
         </main>
       </div>

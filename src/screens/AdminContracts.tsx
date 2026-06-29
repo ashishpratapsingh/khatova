@@ -17,8 +17,8 @@ export default function AdminContracts({ state, openContract, goNewContract }: P
 
   return (
     <div style={{ maxWidth: 1180, margin: '0 auto', animation: 'lgFade .25s ease' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-        <div style={{ display: 'flex', gap: 6, background: '#fff', border: '1px solid #e7e9ee', borderRadius: 10, padding: 4 }}>
+      <div className="k-wrap" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+        <div className="k-scroll" style={{ display: 'flex', gap: 6, background: '#fff', border: '1px solid #e7e9ee', borderRadius: 10, padding: 4, maxWidth: '100%' }}>
           {['All types', 'Hourly', 'Milestone', 'Subscription', 'Metered'].map((f, i) => (
             <span key={f} style={{ fontSize: 12.5, fontWeight: i === 0 ? 600 : 500, color: i === 0 ? '#1f6feb' : '#687184', background: i === 0 ? '#eaf1fe' : 'transparent', padding: '6px 12px', borderRadius: 7, cursor: 'pointer' }}>{f}</span>
           ))}
@@ -32,7 +32,7 @@ export default function AdminContracts({ state, openContract, goNewContract }: P
         </button>
       </div>
 
-      <Card>
+      <Card className="k-scroll">
         <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.3fr 1.2fr 1.2fr 1fr 40px', padding: '11px 20px', borderBottom: '1px solid #eef0f3', fontSize: 11.5, fontWeight: 600, color: '#9aa1ad', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
           <div>Contract</div><div>Client</div><div>Rate</div><div>Type</div><div style={{ textAlign: 'center' }}>Status</div><div />
         </div>

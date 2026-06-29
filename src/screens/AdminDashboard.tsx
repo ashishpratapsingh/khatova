@@ -34,7 +34,7 @@ export default function AdminDashboard({ state, goClients, goApprovals, openClie
   return (
     <div style={{ maxWidth: 1180, margin: '0 auto', animation: 'lgFade .25s ease' }}>
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 22 }}>
+      <div className="rg-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 22 }}>
         {kpis.map(k => (
           <Card key={k.label} style={{ padding: '18px 18px 16px' }}>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: k.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -49,7 +49,7 @@ export default function AdminDashboard({ state, goClients, goApprovals, openClie
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         {/* Client wallets table */}
-        <Card>
+        <Card className="k-scroll">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 18px', borderBottom: '1px solid #eef0f3' }}>
             <div style={{ fontSize: 15, fontWeight: 600 }}>Client wallets</div>
             <button onClick={goClients} style={{ fontSize: 13, color: '#1f6feb', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer' }}>View all →</button>
@@ -86,7 +86,7 @@ export default function AdminDashboard({ state, goClients, goApprovals, openClie
           ))}
         </Card>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, alignItems: 'start' }}>
+        <div className="rg-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, alignItems: 'start' }}>
           {/* Pending approvals */}
           <Card>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 16px', borderBottom: '1px solid #eef0f3' }}>

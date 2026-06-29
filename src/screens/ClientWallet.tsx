@@ -18,7 +18,7 @@ export default function ClientWallet({ state, clientId }: Props) {
   return (
     <div style={{ maxWidth: 860, margin: '0 auto', animation: 'lgFade .25s ease' }}>
       <div style={{ background: 'linear-gradient(135deg,#0e1726,#15243c)', borderRadius: 20, padding: '30px 28px', marginBottom: 20, color: '#fff' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div className="k-wrap" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
           <div>
             <div style={{ fontSize: 13, color: '#9fb0cc', fontWeight: 500, marginBottom: 6 }}>Wallet balance</div>
             <div style={{ fontSize: 38, fontWeight: 700, fontFamily: "'IBM Plex Mono'", letterSpacing: '-1px', lineHeight: 1 }}>{money(bal, false)}</div>
@@ -29,7 +29,7 @@ export default function ClientWallet({ state, clientId }: Props) {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 28 }}>
+        <div className="rg-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 28 }}>
           {[
             { label: 'Spent (recent)', value: money(spent, false) },
             { label: 'Active contracts', value: String(activeContracts) },

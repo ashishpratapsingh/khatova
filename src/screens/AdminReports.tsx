@@ -46,7 +46,7 @@ export default function AdminReports({ state }: Props) {
 
   return (
     <div style={{ maxWidth: 1180, margin: '0 auto', animation: 'lgFade .25s ease' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 18, alignItems: 'start', marginBottom: 18 }}>
+      <div className="rg-2" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 18, alignItems: 'start', marginBottom: 18 }}>
         <Card style={{ padding: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
             <div style={{ fontSize: 15, fontWeight: 600 }}>Revenue — credits vs debits</div>
