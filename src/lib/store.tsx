@@ -18,7 +18,7 @@ function mapClient(r: any): ClientMeta {
     initials: r.initials, threshold: r.threshold_paise, policy: r.policy as WalletPolicy,
     last: '—', balance: r.balance_paise, currency: (r.currency ?? 'INR') as Currency,
     mobile: r.mobile ?? '', address1: r.address1 ?? '', address2: r.address2 ?? '',
-    city: r.city ?? '', state: r.state ?? '',
+    city: r.city ?? '', state: r.state ?? '', notifyLowBalance: r.notify_low_balance ?? true,
   };
 }
 function mapContract(r: any): Contract {
@@ -108,7 +108,7 @@ interface AppApi {
 
 export interface ClientInput {
   company: string; contact: string; email: string; threshold: number; policy: WalletPolicy; currency: Currency;
-  mobile: string; address1: string; address2: string; city: string; state: string;
+  mobile: string; address1: string; address2: string; city: string; state: string; notifyLowBalance: boolean;
 }
 
 export interface CreateContractInput {
@@ -287,7 +287,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const c = clientById(id);
     if (!c) return;
     setModalData({ id, company: c.company, contact: c.contact, email: c.email, threshold: c.threshold, policy: c.policy, currency: c.currency,
-      mobile: c.mobile, address1: c.address1, address2: c.address2, city: c.city, state: c.state });
+      mobile: c.mobile, address1: c.address1, address2: c.address2, city: c.city, state: c.state, notifyLowBalance: c.notifyLowBalance });
     setModal('editclient');
   }, [clientById]);
   const closeModal = useCallback(() => setModal(null), []);
@@ -352,7 +352,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const createClient = useCallback(async (p: ClientInput) => {
     const { error } = await supabase.rpc('create_client', {
       p_company: p.company, p_contact: p.contact, p_email: p.email, p_threshold: p.threshold, p_policy: p.policy, p_currency: p.currency,
-      p_mobile: p.mobile, p_address1: p.address1, p_address2: p.address2, p_city: p.city, p_state: p.state,
+      p_mobile: p.mobile, p_address1: p.address1, p_address2: p.address2, p_city: p.city, p_state: p.state, p_notify: p.notifyLowBalance,
     });
     if (error) { flash(error.message, 'warn'); throw error; }
     invalidate(['clients']); setModal(null);
@@ -362,7 +362,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateClient = useCallback(async (id: string, p: ClientInput) => {
     const { error } = await supabase.rpc('update_client', {
       p_id: id, p_company: p.company, p_contact: p.contact, p_email: p.email, p_threshold: p.threshold, p_policy: p.policy, p_currency: p.currency,
-      p_mobile: p.mobile, p_address1: p.address1, p_address2: p.address2, p_city: p.city, p_state: p.state,
+      p_mobile: p.mobile, p_address1: p.address1, p_address2: p.address2, p_city: p.city, p_state: p.state, p_notify: p.notifyLowBalance,
     });
     if (error) { flash(error.message, 'warn'); throw error; }
     invalidate(['clients']); setModal(null);
@@ -376,12 +376,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const m: ClientInput = {
       company: c.company, contact: c.contact, email: c.email, threshold: c.threshold,
       policy: c.policy, currency: c.currency, mobile: c.mobile, address1: c.address1,
-      address2: c.address2, city: c.city, state: c.state, ...partial,
+      address2: c.address2, city: c.city, state: c.state, notifyLowBalance: c.notifyLowBalance, ...partial,
     };
     const { error } = await supabase.rpc('update_client', {
       p_id: id, p_company: m.company, p_contact: m.contact, p_email: m.email, p_threshold: m.threshold,
       p_policy: m.policy, p_currency: m.currency, p_mobile: m.mobile, p_address1: m.address1,
-      p_address2: m.address2, p_city: m.city, p_state: m.state,
+      p_address2: m.address2, p_city: m.city, p_state: m.state, p_notify: m.notifyLowBalance,
     });
     if (error) { flash(error.message, 'warn'); throw error; }
     invalidate(['clients']);

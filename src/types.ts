@@ -31,6 +31,7 @@ export interface ClientMeta {
   address2: string;
   city: string;
   state: string;
+  notifyLowBalance: boolean;
 }
 
 export interface UserRow {

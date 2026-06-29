@@ -165,7 +165,7 @@ const POLICIES: Array<{ key: WalletPolicy; label: string; desc: string }> = [
 
 export interface ClientFormValues {
   company: string; contact: string; email: string; threshold: number; policy: WalletPolicy; currency: Currency;
-  mobile: string; address1: string; address2: string; city: string; state: string;
+  mobile: string; address1: string; address2: string; city: string; state: string; notifyLowBalance: boolean;
 }
 
 function ClientFormModal({ title, intro, submitLabel, initial, existing = [], selfId, onClose, onSubmit }: {
@@ -201,7 +201,7 @@ function ClientFormModal({ title, intro, submitLabel, initial, existing = [], se
     setBusy(true);
     try {
       await onSubmit({ company, contact, email, threshold: Math.round((parseFloat(threshold || '0') || 0) * 100), policy, currency,
-        mobile, address1, address2, city, state: stateField });
+        mobile, address1, address2, city, state: stateField, notifyLowBalance: initial?.notifyLowBalance ?? true });
     } finally { setBusy(false); }
   };
 

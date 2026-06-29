@@ -30,12 +30,13 @@ function ClientSettings({ client }: { client: ClientMeta }) {
   const [threshold, setThreshold] = useState(String(client.threshold / 100));
   const [thrSave, setThrSave] = useState<SaveState>('idle');
   const [polSave, setPolSave] = useState<SaveState>('idle');
+  const [notifySave, setNotifySave] = useState<SaveState>('idle');
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   // Keep the field in sync if the client is refreshed/changed externally.
   useEffect(() => { setThreshold(String(client.threshold / 100)); }, [client.id, client.threshold]);
 
-  const persist = async (key: 'thr' | 'pol', set: (s: SaveState) => void, partial: Parameters<typeof patchClient>[1]) => {
+  const persist = async (key: 'thr' | 'pol' | 'notify', set: (s: SaveState) => void, partial: Parameters<typeof patchClient>[1]) => {
     set('saving');
     try {
       await patchClient(client.id, partial);
@@ -56,6 +57,8 @@ function ClientSettings({ client }: { client: ClientMeta }) {
     persist('pol', setPolSave, { policy: p });
   };
 
+  const toggleNotify = () => persist('notify', setNotifySave, { notifyLowBalance: !client.notifyLowBalance });
+
   return (
     <div style={{ maxWidth: 660, display: 'flex', flexDirection: 'column', gap: 18 }}>
       <Card style={{ padding: 20 }}>
@@ -74,6 +77,25 @@ function ClientSettings({ client }: { client: ClientMeta }) {
             onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
             style={{ flex: 1, height: 42, border: '1px solid #dcdfe6', borderRadius: 10, padding: '0 14px', fontSize: 15, fontWeight: 600, fontFamily: "'IBM Plex Mono'", boxSizing: 'border-box' }}
           />
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 14, borderTop: '1px solid #f2f3f6' }}>
+          <div>
+            <div style={{ fontSize: 13.5, fontWeight: 600 }}>Notify client</div>
+            <div style={{ fontSize: 12, color: '#9aa1ad', marginTop: 2 }}>Email the client when their balance hits this threshold.</div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <SaveBadge state={notifySave} />
+            <button
+              onClick={toggleNotify}
+              role="switch"
+              aria-checked={client.notifyLowBalance}
+              aria-label="Notify client"
+              style={{ width: 42, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', padding: 0, position: 'relative', background: client.notifyLowBalance ? '#1f6feb' : '#cfd4dd', transition: 'background .15s' }}
+            >
+              <span style={{ position: 'absolute', top: 3, left: client.notifyLowBalance ? 21 : 3, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left .15s', boxShadow: '0 1px 2px rgba(16,24,40,.2)' }} />
+            </button>
+          </div>
         </div>
       </Card>
 
