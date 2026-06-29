@@ -1,7 +1,111 @@
+import { useEffect, useRef, useState } from 'react';
 import { Card, Badge, Avatar, Icon, TypeBadge } from '../ui';
 import { usePagination, Pagination } from '../components/Pagination';
+import { useApp } from '../lib/store';
 import { money, walletStatus, currencyMeta } from '../data';
-import type { AppState } from '../types';
+import type { AppState, ClientMeta, WalletPolicy } from '../types';
+
+const POLICY_OPTS: Array<{ k: WalletPolicy; title: string; desc: string; icon: string }> = [
+  { k: 'BLOCK', title: 'Block', desc: 'Reject any charge that would overdraw the wallet', icon: 'block' },
+  { k: 'ALLOW', title: 'Allow', desc: 'Permit the balance to go negative', icon: 'check_circle' },
+  { k: 'PAUSE', title: 'Pause', desc: 'Auto-pause contracts when funds run low', icon: 'pause_circle' },
+];
+
+type SaveState = 'idle' | 'saving' | 'saved';
+
+function SaveBadge({ state }: { state: SaveState }) {
+  if (state === 'idle') return null;
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12.5, fontWeight: 500, color: state === 'saved' ? '#0c6b4a' : '#9aa1ad' }}>
+      <Icon name={state === 'saved' ? 'check_circle' : 'sync'} size={16} color={state === 'saved' ? '#0c6b4a' : '#9aa1ad'} />
+      {state === 'saved' ? 'Saved' : 'Saving…'}
+    </span>
+  );
+}
+
+function ClientSettings({ client }: { client: ClientMeta }) {
+  const { patchClient } = useApp();
+  const cur = client.currency;
+  const sym = currencyMeta(cur).symbol.trim();
+  const [threshold, setThreshold] = useState(String(client.threshold / 100));
+  const [thrSave, setThrSave] = useState<SaveState>('idle');
+  const [polSave, setPolSave] = useState<SaveState>('idle');
+  const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  // Keep the field in sync if the client is refreshed/changed externally.
+  useEffect(() => { setThreshold(String(client.threshold / 100)); }, [client.id, client.threshold]);
+
+  const persist = async (key: 'thr' | 'pol', set: (s: SaveState) => void, partial: Parameters<typeof patchClient>[1]) => {
+    set('saving');
+    try {
+      await patchClient(client.id, partial);
+      set('saved');
+      if (timers.current[key]) clearTimeout(timers.current[key]);
+      timers.current[key] = setTimeout(() => set('idle'), 1800);
+    } catch { set('idle'); }
+  };
+
+  const commitThreshold = () => {
+    const next = Math.round((parseFloat(threshold || '0') || 0) * 100);
+    if (next === client.threshold) return;
+    persist('thr', setThrSave, { threshold: next });
+  };
+
+  const setPolicy = (p: WalletPolicy) => {
+    if (p === client.policy) return;
+    persist('pol', setPolSave, { policy: p });
+  };
+
+  return (
+    <div style={{ maxWidth: 660, display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <Card style={{ padding: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div style={{ fontSize: 15, fontWeight: 600 }}>Low-balance alert</div>
+          <SaveBadge state={thrSave} />
+        </div>
+        <p style={{ fontSize: 13, color: '#687184', margin: '0 0 16px' }}>Notify when the wallet drops to or below this amount. Saved automatically.</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 15, fontWeight: 600, color: '#687184', fontFamily: "'IBM Plex Mono'" }}>{sym}</span>
+          <input
+            type="number"
+            value={threshold}
+            onChange={e => setThreshold(e.target.value)}
+            onBlur={commitThreshold}
+            onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+            style={{ flex: 1, height: 42, border: '1px solid #dcdfe6', borderRadius: 10, padding: '0 14px', fontSize: 15, fontWeight: 600, fontFamily: "'IBM Plex Mono'", boxSizing: 'border-box' }}
+          />
+        </div>
+      </Card>
+
+      <Card style={{ padding: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div style={{ fontSize: 15, fontWeight: 600 }}>Negative-balance policy</div>
+          <SaveBadge state={polSave} />
+        </div>
+        <p style={{ fontSize: 13, color: '#687184', margin: '0 0 16px' }}>What happens when a charge exceeds available funds. Click to change — saved automatically.</p>
+        <div className="rg-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+          {POLICY_OPTS.map(p => {
+            const active = client.policy === p.k;
+            return (
+              <div
+                key={p.k}
+                onClick={() => setPolicy(p.k)}
+                role="button"
+                style={{ border: `1.5px solid ${active ? '#1f6feb' : '#e7e9ee'}`, background: active ? '#f5f9ff' : '#fff', borderRadius: 12, padding: 15, cursor: 'pointer', transition: 'border-color .12s, background .12s' }}
+                onMouseEnter={e => { if (!active) e.currentTarget.style.borderColor = '#cfd4dd'; }}
+                onMouseLeave={e => { if (!active) e.currentTarget.style.borderColor = '#e7e9ee'; }}
+              >
+                <Icon name={p.icon} size={24} color={active ? '#1f6feb' : '#9aa1ad'} />
+                <div style={{ fontSize: 14, fontWeight: 600, marginTop: 9 }}>{p.title}</div>
+                <div style={{ fontSize: 12, color: '#687184', marginTop: 3, lineHeight: 1.4 }}>{p.desc}</div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+    </div>
+  );
+}
 
 interface Props {
   state: AppState;
@@ -29,12 +133,6 @@ export default function AdminClientDetail({ state, back, openTopup, openAdjust, 
     key: k, label: k.charAt(0).toUpperCase() + k.slice(1),
     active: tab === k,
   }));
-
-  const policyOpts: Array<{ k: string; title: string; desc: string; icon: string }> = [
-    { k: 'BLOCK', title: 'Block', desc: 'Reject any charge that would overdraw the wallet', icon: 'block' },
-    { k: 'ALLOW', title: 'Allow', desc: 'Permit the balance to go negative', icon: 'check_circle' },
-    { k: 'PAUSE', title: 'Pause', desc: 'Auto-pause contracts when funds run low', icon: 'pause_circle' },
-  ];
 
   return (
     <div style={{ maxWidth: 1180, margin: '0 auto', animation: 'lgFade .25s ease' }}>
@@ -187,42 +285,7 @@ export default function AdminClientDetail({ state, back, openTopup, openAdjust, 
       )}
 
       {/* Settings */}
-      {tab === 'settings' && (
-        <div style={{ maxWidth: 660, display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <Card style={{ padding: 20 }}>
-            <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Low-balance alerts</div>
-            <p style={{ fontSize: 13, color: '#687184', margin: '0 0 16px' }}>Notify when the wallet drops to or below this amount.</p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <input defaultValue={money(client.threshold, false, cur)} style={{ flex: 1, height: 42, border: '1px solid #dcdfe6', borderRadius: 10, padding: '0 14px', fontSize: 15, fontWeight: 600, fontFamily: "'IBM Plex Mono'" }} />
-              <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13.5, color: '#3f4654', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                <span style={{ width: 38, height: 22, borderRadius: 11, background: '#1f6feb', position: 'relative', display: 'inline-block' }}>
-                  <span style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: '50%', background: '#fff', display: 'block' }} />
-                </span>
-                Notify client
-              </label>
-            </div>
-          </Card>
-          <Card style={{ padding: 20 }}>
-            <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Negative-balance policy</div>
-            <p style={{ fontSize: 13, color: '#687184', margin: '0 0 16px' }}>What happens when a charge exceeds available funds.</p>
-            <div className="rg-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-              {policyOpts.map(p => {
-                const active = client.policy === p.k;
-                return (
-                  <div
-                    key={p.k}
-                    style={{ border: `1.5px solid ${active ? '#1f6feb' : '#e7e9ee'}`, background: active ? '#f5f9ff' : '#fff', borderRadius: 12, padding: 15, cursor: 'pointer' }}
-                  >
-                    <Icon name={p.icon} size={24} color={active ? '#1f6feb' : '#9aa1ad'} />
-                    <div style={{ fontSize: 14, fontWeight: 600, marginTop: 9 }}>{p.title}</div>
-                    <div style={{ fontSize: 12, color: '#687184', marginTop: 3, lineHeight: 1.4 }}>{p.desc}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-        </div>
-      )}
+      {tab === 'settings' && <ClientSettings client={client} />}
     </div>
   );
 }

@@ -102,6 +102,7 @@ interface AppApi {
   inviteUser: (p: { email: string; password: string; name: string; role: 'admin' | 'staff' | 'client'; client: string | null }) => Promise<void>;
   createClient: (p: ClientInput) => Promise<void>;
   updateClient: (id: string, p: ClientInput) => Promise<void>;
+  patchClient: (id: string, partial: Partial<ClientInput>) => Promise<void>;
   deleteClients: (ids: string[]) => Promise<void>;
 }
 
@@ -368,6 +369,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     flash('Client updated');
   }, [flash, invalidate]);
 
+  // Silent partial update — no modal close, no toast (for inline auto-save).
+  const patchClient = useCallback(async (id: string, partial: Partial<ClientInput>) => {
+    const c = clients.find(x => x.id === id);
+    if (!c) return;
+    const m: ClientInput = {
+      company: c.company, contact: c.contact, email: c.email, threshold: c.threshold,
+      policy: c.policy, currency: c.currency, mobile: c.mobile, address1: c.address1,
+      address2: c.address2, city: c.city, state: c.state, ...partial,
+    };
+    const { error } = await supabase.rpc('update_client', {
+      p_id: id, p_company: m.company, p_contact: m.contact, p_email: m.email, p_threshold: m.threshold,
+      p_policy: m.policy, p_currency: m.currency, p_mobile: m.mobile, p_address1: m.address1,
+      p_address2: m.address2, p_city: m.city, p_state: m.state,
+    });
+    if (error) { flash(error.message, 'warn'); throw error; }
+    invalidate(['clients']);
+  }, [clients, flash, invalidate]);
+
   const deleteClients = useCallback(async (ids: string[]) => {
     if (ids.length === 0) return;
     const { error } = await supabase.rpc('delete_clients', { p_ids: ids });
@@ -381,7 +400,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     search, setSearch, readNotifs, markNotifsRead,
     login, logout, go, openClient, openContract, setClientTab, setNewType, setLogContract, update,
     openTopup, openAdjust, openReject, openAddUser, openNewClient, openEditClient, closeModal,
-    flash, topup, adjust, approve, reject, logUsage, createContract, inviteUser, createClient, updateClient, deleteClients,
+    flash, topup, adjust, approve, reject, logUsage, createContract, inviteUser, createClient, updateClient, patchClient, deleteClients,
   };
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;
 }
