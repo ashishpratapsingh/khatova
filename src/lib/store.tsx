@@ -67,6 +67,9 @@ interface AppApi {
   // search
   search: string;
   setSearch: (q: string) => void;
+  // notifications read-state
+  readNotifs: string[];
+  markNotifsRead: (ids: string[]) => void;
   // auth
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -131,7 +134,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [logUnit, setLogUnit] = useState('');
   const [logQty, setLogQty] = useState('6');
   const [search, setSearch] = useState('');
+  const [readNotifs, setReadNotifs] = useState<string[]>([]);
   const [toast, setToast] = useState<AppState['toast']>(null);
+
+  const markNotifsRead = useCallback((ids: string[]) => {
+    setReadNotifs(prev => Array.from(new Set([...prev, ...ids])));
+  }, []);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // --- session bootstrap ---
@@ -230,7 +238,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
   const logout = useCallback(async () => {
     await supabase.auth.signOut();
-    setProfile(null); setRoute('login'); qc.clear();
+    setProfile(null); setRoute('login'); setReadNotifs([]); qc.clear();
   }, [qc]);
 
   // --- nav ---
@@ -322,7 +330,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const api: AppApi = {
     state, session, profile, portal, authLoading, authError,
-    search, setSearch,
+    search, setSearch, readNotifs, markNotifsRead,
     login, logout, go, openClient, openContract, setClientTab, setNewType, setLogContract, update,
     openTopup, openAdjust, openReject, openAddUser, closeModal,
     flash, topup, adjust, approve, reject, logUsage, createContract, inviteUser,

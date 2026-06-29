@@ -8,6 +8,7 @@ export interface NotifItem {
   bg: string;
   title: string;
   desc: string;
+  read?: boolean;
   onClick?: () => void;
 }
 
@@ -18,13 +19,15 @@ interface Props {
   onMenu?: () => void;
   onLogout: () => void;
   notifications: NotifItem[];
+  onReadNotif: (id: string) => void;
+  onReadAllNotifs: () => void;
   search: string;
   onSearch: (q: string) => void;
   searchPlaceholder?: string;
   showSearch?: boolean;
 }
 
-export default function Header({ title, sub, me, onMenu, onLogout, notifications, search, onSearch, searchPlaceholder = 'Search…', showSearch = true }: Props) {
+export default function Header({ title, sub, me, onMenu, onLogout, notifications, onReadNotif, onReadAllNotifs, search, onSearch, searchPlaceholder = 'Search…', showSearch = true }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -40,7 +43,7 @@ export default function Header({ title, sub, me, onMenu, onLogout, notifications
     return () => document.removeEventListener('mousedown', onDoc);
   }, [menuOpen, notifOpen]);
 
-  const notifCount = notifications.length;
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
     <header style={{
@@ -90,9 +93,9 @@ export default function Header({ title, sub, me, onMenu, onLogout, notifications
           style={{ position: 'relative', width: 38, height: 38, borderRadius: 9, background: notifOpen ? '#eaf1fe' : '#f1f3f6', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: 'none' }}
         >
           <Icon name="notifications" size={20} color={notifOpen ? '#1f6feb' : '#3f4654'} />
-          {notifCount > 0 && (
+          {unreadCount > 0 && (
             <span style={{ position: 'absolute', top: -4, right: -4, minWidth: 17, height: 17, padding: '0 4px', borderRadius: 9, background: '#e0492f', color: '#fff', fontSize: 10.5, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff', fontFamily: "'IBM Plex Mono'" }}>
-              {notifCount > 9 ? '9+' : notifCount}
+              {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </button>
@@ -105,21 +108,27 @@ export default function Header({ title, sub, me, onMenu, onLogout, notifications
             animation: 'lgPop .14s ease',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 14px', borderBottom: '1px solid #f2f3f6' }}>
-              <span style={{ fontSize: 14, fontWeight: 600 }}>Notifications</span>
-              {notifCount > 0 && <span style={{ fontSize: 12, color: '#9aa1ad' }}>{notifCount} new</span>}
+              <span style={{ fontSize: 14, fontWeight: 600 }}>Notifications{unreadCount > 0 ? ` · ${unreadCount} new` : ''}</span>
+              {unreadCount > 0 && (
+                <button onClick={onReadAllNotifs}
+                  style={{ fontSize: 12, fontWeight: 600, color: '#1f6feb', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  Read all
+                </button>
+              )}
             </div>
             <div style={{ maxHeight: 360, overflowY: 'auto' }}>
-              {notifCount === 0 && (
+              {notifications.length === 0 && (
                 <div style={{ padding: '30px 16px', textAlign: 'center', color: '#9aa1ad', fontSize: 13 }}>You're all caught up.</div>
               )}
               {notifications.map(n => (
                 <div
                   key={n.id}
-                  onClick={() => { setNotifOpen(false); n.onClick?.(); }}
-                  style={{ display: 'flex', gap: 11, padding: '12px 14px', borderBottom: '1px solid #f4f5f7', cursor: n.onClick ? 'pointer' : 'default' }}
+                  onClick={() => { onReadNotif(n.id); setNotifOpen(false); n.onClick?.(); }}
+                  style={{ position: 'relative', display: 'flex', gap: 11, padding: '12px 14px 12px 22px', borderBottom: '1px solid #f4f5f7', cursor: 'pointer', background: n.read ? '#fff' : '#f8fbff', opacity: n.read ? 0.62 : 1 }}
                   onMouseEnter={e => (e.currentTarget.style.background = '#fafbfc')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  onMouseLeave={e => (e.currentTarget.style.background = n.read ? '#fff' : '#f8fbff')}
                 >
+                  {!n.read && <span style={{ position: 'absolute', left: 9, top: 18, width: 7, height: 7, borderRadius: '50%', background: '#1f6feb' }} />}
                   <div style={{ width: 32, height: 32, borderRadius: 9, background: n.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Icon name={n.icon} size={18} color={n.color} />
                   </div>

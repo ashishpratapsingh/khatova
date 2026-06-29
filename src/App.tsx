@@ -160,6 +160,7 @@ export default function App() {
   const searchPlaceholder = SEARCHABLE[state.route];
 
   // Role-aware notifications derived from live data
+  const readSet = new Set(app.readNotifs);
   const notifications: NotifItem[] = [];
   if (currentPortal === 'admin') {
     if (pendingCount > 0) {
@@ -224,6 +225,9 @@ export default function App() {
     });
   }
 
+  notifications.forEach(n => { n.read = readSet.has(n.id); });
+  const allNotifIds = notifications.map(n => n.id);
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f6f7f9', fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>
       {!isMobile && (
@@ -245,6 +249,8 @@ export default function App() {
           title={meta.title} sub={meta.sub} me={me} onLogout={app.logout}
           onMenu={isMobile ? () => setDrawerOpen(true) : undefined}
           notifications={notifications}
+          onReadNotif={(id) => app.markNotifsRead([id])}
+          onReadAllNotifs={() => app.markNotifsRead(allNotifIds)}
           search={app.search} onSearch={app.setSearch}
           searchPlaceholder={searchPlaceholder ?? 'Search…'}
           showSearch={!!searchPlaceholder}
