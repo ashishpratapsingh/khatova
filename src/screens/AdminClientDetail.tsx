@@ -9,9 +9,10 @@ interface Props {
   openAdjust: (id: string) => void;
   openContract: (id: string) => void;
   setTab: (t: AppState['clientTab']) => void;
+  openEdit: (id: string) => void;
 }
 
-export default function AdminClientDetail({ state, back, openTopup, openAdjust, openContract, setTab }: Props) {
+export default function AdminClientDetail({ state, back, openTopup, openAdjust, openContract, setTab, openEdit }: Props) {
   const client = state.clients.find(c => c.id === state.selClient) || state.clients[0];
   if (!client) return null;
   const bal = state.balances[state.selClient] ?? client.balance;
@@ -47,6 +48,9 @@ export default function AdminClientDetail({ state, back, openTopup, openAdjust, 
           <div style={{ fontSize: 13, color: '#687184', marginTop: 4 }}>{client.contact} · {client.email}</div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={() => openEdit(state.selClient)} style={{ height: 40, border: '1px solid #dcdfe6', background: '#fff', color: '#3f4654', borderRadius: 9, padding: '0 14px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Icon name="edit" size={17} color="#687184" />Edit
+          </button>
           <button onClick={() => openAdjust(state.selClient)} style={{ height: 40, border: '1px solid #dcdfe6', background: '#fff', color: '#3f4654', borderRadius: 9, padding: '0 14px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>Adjust</button>
           <button onClick={() => openTopup(state.selClient)} style={{ height: 40, background: '#1f6feb', color: '#fff', border: 'none', borderRadius: 9, padding: '0 16px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Icon name="add" size={19} color="#fff" />Top up

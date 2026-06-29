@@ -12,7 +12,7 @@ export type ApprovalMode = 'MANUAL' | 'AUTO';
 export type EventStatus = 'PENDING' | 'BILLED' | 'REJECTED';
 export type ClientStatus = 'HEALTHY' | 'LOW' | 'NEGATIVE';
 export type WalletPolicy = 'BLOCK' | 'ALLOW' | 'PAUSE';
-export type Modal = 'topup' | 'adjust' | 'reject' | 'adduser' | 'newclient' | null;
+export type Modal = 'topup' | 'adjust' | 'reject' | 'adduser' | 'newclient' | 'editclient' | null;
 
 export interface ClientMeta {
   id: string;

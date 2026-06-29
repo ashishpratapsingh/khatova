@@ -87,6 +87,7 @@ interface AppApi {
   openReject: (ev: { id: string; staff: string; desc: string; amountFmt: string }) => void;
   openAddUser: () => void;
   openNewClient: () => void;
+  openEditClient: (id: string) => void;
   closeModal: () => void;
   // mutations
   flash: (msg: string, tone?: 'ok' | 'warn') => void;
@@ -98,6 +99,7 @@ interface AppApi {
   createContract: (p: CreateContractInput) => Promise<void>;
   inviteUser: (p: { email: string; password: string; name: string; role: 'admin' | 'staff' | 'client'; client: string | null }) => Promise<void>;
   createClient: (p: { company: string; contact: string; email: string; threshold: number; policy: WalletPolicy }) => Promise<void>;
+  updateClient: (id: string, p: { company: string; contact: string; email: string; threshold: number; policy: WalletPolicy }) => Promise<void>;
   deleteClients: (ids: string[]) => Promise<void>;
 }
 
@@ -273,6 +275,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
   const openAddUser = useCallback(() => { setModalData({}); setModal('adduser'); }, []);
   const openNewClient = useCallback(() => { setModalData({}); setModal('newclient'); }, []);
+  const openEditClient = useCallback((id: string) => {
+    const c = clientById(id);
+    if (!c) return;
+    setModalData({ id, company: c.company, contact: c.contact, email: c.email, threshold: c.threshold, policy: c.policy });
+    setModal('editclient');
+  }, [clientById]);
   const closeModal = useCallback(() => setModal(null), []);
 
   // --- mutations ---
@@ -341,6 +349,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     flash('Client created');
   }, [flash, invalidate]);
 
+  const updateClient = useCallback(async (id: string, p: { company: string; contact: string; email: string; threshold: number; policy: WalletPolicy }) => {
+    const { error } = await supabase.rpc('update_client', {
+      p_id: id, p_company: p.company, p_contact: p.contact, p_email: p.email, p_threshold: p.threshold, p_policy: p.policy,
+    });
+    if (error) { flash(error.message, 'warn'); throw error; }
+    invalidate(['clients']); setModal(null);
+    flash('Client updated');
+  }, [flash, invalidate]);
+
   const deleteClients = useCallback(async (ids: string[]) => {
     if (ids.length === 0) return;
     const { error } = await supabase.rpc('delete_clients', { p_ids: ids });
@@ -353,8 +370,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     state, session, profile, portal, authLoading, authError,
     search, setSearch, readNotifs, markNotifsRead,
     login, logout, go, openClient, openContract, setClientTab, setNewType, setLogContract, update,
-    openTopup, openAdjust, openReject, openAddUser, openNewClient, closeModal,
-    flash, topup, adjust, approve, reject, logUsage, createContract, inviteUser, createClient, deleteClients,
+    openTopup, openAdjust, openReject, openAddUser, openNewClient, openEditClient, closeModal,
+    flash, topup, adjust, approve, reject, logUsage, createContract, inviteUser, createClient, updateClient, deleteClients,
   };
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;
 }

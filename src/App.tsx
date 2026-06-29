@@ -7,7 +7,7 @@ import Login from './components/Login';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Toast from './components/Toast';
-import { TopupModal, AdjustModal, RejectModal, AddUserModal, NewClientModal } from './components/Modals';
+import { TopupModal, AdjustModal, RejectModal, AddUserModal, NewClientModal, EditClientModal } from './components/Modals';
 import type { Route, Portal } from './types';
 
 // Screens
@@ -113,7 +113,7 @@ export default function App() {
       case 'admin.clients':
         return <AdminClients state={state} openClient={app.openClient} openTopup={app.openTopup} openNewClient={app.openNewClient} />;
       case 'admin.clientDetail':
-        return <AdminClientDetail state={state} back={() => app.go('admin.clients')} openTopup={app.openTopup} openAdjust={app.openAdjust} openContract={app.openContract} setTab={app.setClientTab} />;
+        return <AdminClientDetail state={state} back={() => app.go('admin.clients')} openTopup={app.openTopup} openAdjust={app.openAdjust} openContract={app.openContract} setTab={app.setClientTab} openEdit={app.openEditClient} />;
       case 'admin.contracts':
         return <AdminContracts state={state} openContract={app.openContract} goNewContract={() => app.go('admin.newContract')} />;
       case 'admin.contractDetail':
@@ -277,6 +277,10 @@ export default function App() {
       )}
       {state.modal === 'newclient' && (
         <NewClientModal onClose={app.closeModal} onSubmit={app.createClient} />
+      )}
+      {state.modal === 'editclient' && (
+        <EditClientModal data={state.modalData} onClose={app.closeModal}
+          onSubmit={(p) => app.updateClient(state.modalData.id, p)} />
       )}
 
       {state.toast && <Toast msg={state.toast.msg} tone={state.toast.tone} />}

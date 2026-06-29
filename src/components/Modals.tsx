@@ -152,22 +152,28 @@ export function RejectModal({ data, onClose, onSubmit }: {
   );
 }
 
-// New client modal ---------------------------------------------------------
+// Client form (shared by create + edit) ------------------------------------
 const POLICIES: Array<{ key: WalletPolicy; label: string; desc: string }> = [
   { key: 'BLOCK', label: 'Block', desc: 'Reject overdraws' },
   { key: 'ALLOW', label: 'Allow', desc: 'Permit negative' },
   { key: 'PAUSE', label: 'Pause', desc: 'Pause on low' },
 ];
 
-export function NewClientModal({ onClose, onSubmit }: {
+export interface ClientFormValues {
+  company: string; contact: string; email: string; threshold: number; policy: WalletPolicy;
+}
+
+function ClientFormModal({ title, intro, submitLabel, initial, onClose, onSubmit }: {
+  title: string; intro: string; submitLabel: string;
+  initial?: { company?: string; contact?: string; email?: string; threshold?: number; policy?: WalletPolicy };
   onClose: () => void;
-  onSubmit: (p: { company: string; contact: string; email: string; threshold: number; policy: WalletPolicy }) => Promise<void>;
+  onSubmit: (p: ClientFormValues) => Promise<void>;
 }) {
-  const [company, setCompany] = useState('');
-  const [contact, setContact] = useState('');
-  const [email, setEmail] = useState('');
-  const [threshold, setThreshold] = useState('');
-  const [policy, setPolicy] = useState<WalletPolicy>('BLOCK');
+  const [company, setCompany] = useState(initial?.company ?? '');
+  const [contact, setContact] = useState(initial?.contact ?? '');
+  const [email, setEmail] = useState(initial?.email ?? '');
+  const [threshold, setThreshold] = useState(initial?.threshold ? String(initial.threshold / 100) : '');
+  const [policy, setPolicy] = useState<WalletPolicy>(initial?.policy ?? 'BLOCK');
   const [busy, setBusy] = useState(false);
   const valid = company.trim().length > 0;
 
@@ -175,19 +181,13 @@ export function NewClientModal({ onClose, onSubmit }: {
     if (busy || !valid) return;
     setBusy(true);
     try {
-      await onSubmit({
-        company, contact, email,
-        threshold: Math.round((parseFloat(threshold || '0') || 0) * 100),
-        policy,
-      });
+      await onSubmit({ company, contact, email, threshold: Math.round((parseFloat(threshold || '0') || 0) * 100), policy });
     } finally { setBusy(false); }
   };
 
   return (
-    <ModalShell title="New client" onClose={onClose}>
-      <p style={{ fontSize: 13, color: '#687184', margin: '2px 0 20px' }}>
-        Add a client company. Their wallet starts at ₹0 — top it up afterwards.
-      </p>
+    <ModalShell title={title} onClose={onClose}>
+      <p style={{ fontSize: 13, color: '#687184', margin: '2px 0 20px' }}>{intro}</p>
 
       <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Company name</label>
       <input value={company} onChange={e => setCompany(e.target.value)} placeholder="e.g. Rathore Timber Pvt Ltd" style={{ ...inputStyle, marginBottom: 14 }} />
@@ -219,10 +219,18 @@ export function NewClientModal({ onClose, onSubmit }: {
 
       <div style={{ display: 'flex', gap: 10 }}>
         <button onClick={onClose} style={{ flex: 1, height: 42, border: '1px solid #dcdfe6', background: '#fff', color: '#3f4654', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-        <button onClick={submit} disabled={busy || !valid} style={{ flex: 2, height: 42, background: '#1f6feb', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: busy || !valid ? 0.6 : 1 }}>Create client</button>
+        <button onClick={submit} disabled={busy || !valid} style={{ flex: 2, height: 42, background: '#1f6feb', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: busy || !valid ? 0.6 : 1 }}>{busy ? 'Saving…' : submitLabel}</button>
       </div>
     </ModalShell>
   );
+}
+
+export function NewClientModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (p: ClientFormValues) => Promise<void> }) {
+  return <ClientFormModal title="New client" intro="Add a client company. Their wallet starts at ₹0 — top it up afterwards." submitLabel="Create client" onClose={onClose} onSubmit={onSubmit} />;
+}
+
+export function EditClientModal({ data, onClose, onSubmit }: { data: Record<string, any>; onClose: () => void; onSubmit: (p: ClientFormValues) => Promise<void> }) {
+  return <ClientFormModal title="Edit client" intro="Update this client's details." submitLabel="Save changes" initial={data} onClose={onClose} onSubmit={onSubmit} />;
 }
 
 // Add user modal -----------------------------------------------------------
