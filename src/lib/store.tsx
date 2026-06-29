@@ -64,6 +64,9 @@ interface AppApi {
   portal: Portal | null;
   authLoading: boolean;
   authError: string | null;
+  // search
+  search: string;
+  setSearch: (q: string) => void;
   // auth
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -127,6 +130,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [logContract, setLogContract] = useState('');
   const [logUnit, setLogUnit] = useState('');
   const [logQty, setLogQty] = useState('6');
+  const [search, setSearch] = useState('');
   const [toast, setToast] = useState<AppState['toast']>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -230,7 +234,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [qc]);
 
   // --- nav ---
-  const go = useCallback((r: Route) => { setRoute(r); setModal(null); }, []);
+  const go = useCallback((r: Route) => { setRoute(r); setModal(null); setSearch(''); }, []);
   const openClient = useCallback((id: string) => { setSelClient(id); setClientTabState('overview'); setRoute('admin.clientDetail'); setModal(null); }, []);
   const openContract = useCallback((id: string) => { setSelContract(id); setRoute('admin.contractDetail'); setModal(null); }, []);
   const setClientTab = useCallback((t: AppState['clientTab']) => setClientTabState(t), []);
@@ -318,6 +322,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const api: AppApi = {
     state, session, profile, portal, authLoading, authError,
+    search, setSearch,
     login, logout, go, openClient, openContract, setClientTab, setNewType, setLogContract, update,
     openTopup, openAdjust, openReject, openAddUser, closeModal,
     flash, topup, adjust, approve, reject, logUsage, createContract, inviteUser,

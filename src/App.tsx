@@ -149,6 +149,14 @@ export default function App() {
 
   const portalLabel = currentPortal === 'admin' ? 'ADMIN PORTAL' : currentPortal === 'staff' ? 'STAFF PORTAL' : 'CLIENT PORTAL';
 
+  const SEARCHABLE: Record<string, string> = {
+    'admin.clients': 'Search clients…',
+    'admin.contracts': 'Search contracts…',
+    'admin.users': 'Search team…',
+    'staff.history': 'Search history…',
+  };
+  const searchPlaceholder = SEARCHABLE[state.route];
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f6f7f9', fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>
       {!isMobile && (
@@ -166,7 +174,13 @@ export default function App() {
       )}
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Header title={meta.title} sub={meta.sub} me={me} onMenu={isMobile ? () => setDrawerOpen(true) : undefined} />
+        <Header
+          title={meta.title} sub={meta.sub} me={me}
+          onMenu={isMobile ? () => setDrawerOpen(true) : undefined}
+          search={app.search} onSearch={app.setSearch}
+          searchPlaceholder={searchPlaceholder ?? 'Search…'}
+          showSearch={!!searchPlaceholder}
+        />
         <main className="k-main" style={{ flex: 1, padding: '24px 28px', overflowY: 'auto' }}>
           {renderScreen()}
         </main>

@@ -5,9 +5,13 @@ interface Props {
   sub: string;
   me: { initials: string; badgeBg: string; badgeFg: string };
   onMenu?: () => void;
+  search: string;
+  onSearch: (q: string) => void;
+  searchPlaceholder?: string;
+  showSearch?: boolean;
 }
 
-export default function Header({ title, sub, me, onMenu }: Props) {
+export default function Header({ title, sub, me, onMenu, search, onSearch, searchPlaceholder = 'Search…', showSearch = true }: Props) {
   return (
     <header style={{
       height: 62,
@@ -33,10 +37,22 @@ export default function Header({ title, sub, me, onMenu }: Props) {
         <div style={{ fontSize: 12.5, color: '#9aa1ad', marginTop: 2 }}>{sub}</div>
       </div>
       <div style={{ flex: 1 }} />
-      <div className="k-hide-sm" style={{ display: 'flex', alignItems: 'center', gap: 8, height: 38, background: '#f1f3f6', borderRadius: 9, padding: '0 12px', width: 230 }}>
-        <Icon name="search" size={19} color="#9aa1ad" />
-        <span style={{ fontSize: 13, color: '#9aa1ad' }}>Search…</span>
-      </div>
+      {showSearch && (
+        <div className="k-hide-sm" style={{ display: 'flex', alignItems: 'center', gap: 8, height: 38, background: '#f1f3f6', borderRadius: 9, padding: '0 12px', width: 230 }}>
+          <Icon name="search" size={19} color="#9aa1ad" />
+          <input
+            value={search}
+            onChange={e => onSearch(e.target.value)}
+            placeholder={searchPlaceholder}
+            style={{ flex: 1, minWidth: 0, border: 'none', background: 'transparent', fontSize: 13, color: '#161b26' }}
+          />
+          {search && (
+            <span onClick={() => onSearch('')} style={{ cursor: 'pointer', display: 'flex' }} aria-label="Clear search">
+              <Icon name="close" size={17} color="#9aa1ad" />
+            </span>
+          )}
+        </div>
+      )}
       <div style={{ position: 'relative', width: 38, height: 38, borderRadius: 9, background: '#f1f3f6', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
         <Icon name="notifications" size={20} color="#3f4654" />
         <span style={{ position: 'absolute', top: 7, right: 8, width: 7, height: 7, borderRadius: '50%', background: '#e0492f', border: '1.5px solid #f1f3f6' }} />

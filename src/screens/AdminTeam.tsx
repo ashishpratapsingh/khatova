@@ -1,4 +1,5 @@
 import { Card, Badge, Avatar, Icon } from '../ui';
+import { useApp } from '../lib/store';
 import type { AppState } from '../types';
 
 interface Props {
@@ -10,7 +11,10 @@ const roleChip = (r: string) => ({ ADMIN: { label: 'Admin', bg: '#eaf1fe', fg: '
 const inits = (name: string) => name.split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
 
 export default function AdminTeam({ state, openAddUser }: Props) {
-  const USERS = state.users;
+  const { search } = useApp();
+  const q = search.trim().toLowerCase();
+  const USERS = state.users.filter(u =>
+    !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.role.toLowerCase().includes(q));
   return (
     <div style={{ maxWidth: 1080, margin: '0 auto', animation: 'lgFade .25s ease' }}>
       <div className="k-wrap" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
@@ -32,6 +36,9 @@ export default function AdminTeam({ state, openAddUser }: Props) {
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1fr 1.1fr', padding: '11px 20px', borderBottom: '1px solid #eef0f3', fontSize: 11.5, fontWeight: 600, color: '#9aa1ad', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
           <div>User</div><div>Role</div><div>Status</div><div style={{ textAlign: 'right' }}>Last active</div>
         </div>
+        {USERS.length === 0 && (
+          <div style={{ padding: '34px 20px', textAlign: 'center', fontSize: 13.5, color: '#9aa1ad' }}>No users match your search.</div>
+        )}
         {USERS.map(u => {
           const rc = roleChip(u.role);
           return (

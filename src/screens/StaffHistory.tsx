@@ -1,5 +1,6 @@
 import { Card, Badge, TypeBadge } from '../ui';
 import { money, typeChip, evStatusChip, qtyLabel } from '../data';
+import { useApp } from '../lib/store';
 import type { AppState } from '../types';
 
 interface Props {
@@ -8,8 +9,11 @@ interface Props {
 }
 
 export default function StaffHistory({ state }: Props) {
-  const myEvents = state.events;
+  const { search } = useApp();
+  const q = search.trim().toLowerCase();
   const cName = (id: string) => state.contracts.find(c => c.id === id)?.name || id;
+  const myEvents = state.events.filter(e =>
+    !q || e.desc.toLowerCase().includes(q) || e.unit.toLowerCase().includes(q) || cName(e.contractId).toLowerCase().includes(q));
 
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto', animation: 'lgFade .25s ease' }}>

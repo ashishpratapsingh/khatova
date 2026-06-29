@@ -1,5 +1,6 @@
 import { Card, Badge, TypeBadge, Icon } from '../ui';
 import { typeChip } from '../data';
+import { useApp } from '../lib/store';
 import type { AppState } from '../types';
 
 interface Props {
@@ -9,6 +10,11 @@ interface Props {
 }
 
 export default function AdminContracts({ state, openContract, goNewContract }: Props) {
+  const { search } = useApp();
+  const q = search.trim().toLowerCase();
+  const contracts = state.contracts.filter(c =>
+    !q || c.name.toLowerCase().includes(q) || c.client.toLowerCase().includes(q) ||
+    c.rateSummary.toLowerCase().includes(q) || c.type.toLowerCase().includes(q));
   const stMap: Record<string, { label: string; bg: string; fg: string }> = {
     ACTIVE: { label: 'Active', bg: '#e3f3ec', fg: '#0c6b4a' },
     PAUSED: { label: 'Paused', bg: '#fbf0d9', fg: '#8a5d08' },
@@ -36,7 +42,10 @@ export default function AdminContracts({ state, openContract, goNewContract }: P
         <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.3fr 1.2fr 1.2fr 1fr 40px', padding: '11px 20px', borderBottom: '1px solid #eef0f3', fontSize: 11.5, fontWeight: 600, color: '#9aa1ad', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
           <div>Contract</div><div>Client</div><div>Rate</div><div>Type</div><div style={{ textAlign: 'center' }}>Status</div><div />
         </div>
-        {state.contracts.map(c => {
+        {contracts.length === 0 && (
+          <div style={{ padding: '34px 20px', textAlign: 'center', fontSize: 13.5, color: '#9aa1ad' }}>No contracts match your search.</div>
+        )}
+        {contracts.map(c => {
           const tc = typeChip(c.type);
           const st = stMap[c.status];
           return (

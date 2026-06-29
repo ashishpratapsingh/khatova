@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Card, Badge, Avatar, Icon } from '../ui';
 import { money, walletStatus } from '../data';
-import type { AppState } from '../types';
+import { useApp } from '../lib/store';
+import type { AppState, ClientStatus } from '../types';
 
 interface Props {
   state: AppState;
@@ -9,25 +11,43 @@ interface Props {
   openAddUser: () => void;
 }
 
+const FILTERS: Array<{ label: string; key: ClientStatus | 'ALL' }> = [
+  { label: 'All', key: 'ALL' }, { label: 'Healthy', key: 'HEALTHY' },
+  { label: 'Low', key: 'LOW' }, { label: 'Negative', key: 'NEGATIVE' },
+];
+
 export default function AdminClients({ state, openClient, openTopup, openAddUser }: Props) {
-  const rows = state.clients.map(c => {
-    const b = state.balances[c.id];
-    const st = walletStatus(b, c.threshold);
-    return { ...c, balance: b, balanceFmt: money(b, false), balanceColor: b < 0 ? '#b5362b' : '#161b26', st };
-  });
+  const { search, setSearch } = useApp();
+  const [filter, setFilter] = useState<ClientStatus | 'ALL'>('ALL');
+  const q = search.trim().toLowerCase();
+
+  const rows = state.clients
+    .map(c => {
+      const b = state.balances[c.id];
+      const st = walletStatus(b, c.threshold);
+      return { ...c, balance: b, balanceFmt: money(b, false), balanceColor: b < 0 ? '#b5362b' : '#161b26', st };
+    })
+    .filter(c => filter === 'ALL' || c.st.key === filter)
+    .filter(c => !q || c.company.toLowerCase().includes(q) || c.contact.toLowerCase().includes(q) || c.email.toLowerCase().includes(q));
 
   return (
     <div style={{ maxWidth: 1180, margin: '0 auto', animation: 'lgFade .25s ease' }}>
       <div className="k-wrap" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
         <div style={{ display: 'flex', gap: 6, background: '#fff', border: '1px solid #e7e9ee', borderRadius: 10, padding: 4 }}>
-          {['All', 'Healthy', 'Low', 'Negative'].map((f, i) => (
-            <span key={f} style={{ fontSize: 12.5, fontWeight: i === 0 ? 600 : 500, color: i === 0 ? '#1f6feb' : '#687184', background: i === 0 ? '#eaf1fe' : 'transparent', padding: '6px 12px', borderRadius: 7, cursor: 'pointer' }}>{f}</span>
-          ))}
+          {FILTERS.map(f => {
+            const active = filter === f.key;
+            return (
+              <span key={f.key} onClick={() => setFilter(f.key)}
+                style={{ fontSize: 12.5, fontWeight: active ? 600 : 500, color: active ? '#1f6feb' : '#687184', background: active ? '#eaf1fe' : 'transparent', padding: '6px 12px', borderRadius: 7, cursor: 'pointer' }}>{f.label}</span>
+            );
+          })}
         </div>
         <div style={{ flex: 1 }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: 38, background: '#fff', border: '1px solid #e7e9ee', borderRadius: 9, padding: '0 12px', width: 220 }}>
           <Icon name="search" size={19} color="#9aa1ad" />
-          <span style={{ fontSize: 13, color: '#9aa1ad' }}>Search clients…</span>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients…"
+            style={{ flex: 1, minWidth: 0, border: 'none', background: 'transparent', fontSize: 13, color: '#161b26' }} />
+          {search && <span onClick={() => setSearch('')} style={{ cursor: 'pointer', display: 'flex' }}><Icon name="close" size={16} color="#9aa1ad" /></span>}
         </div>
         <button
           onClick={openAddUser}
@@ -41,6 +61,9 @@ export default function AdminClients({ state, openClient, openTopup, openAddUser
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1.1fr 1fr 116px', padding: '11px 20px', borderBottom: '1px solid #eef0f3', fontSize: 11.5, fontWeight: 600, color: '#9aa1ad', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
           <div>Client</div><div>Billing email</div><div style={{ textAlign: 'right' }}>Balance</div><div style={{ textAlign: 'center' }}>Status</div><div />
         </div>
+        {rows.length === 0 && (
+          <div style={{ padding: '34px 20px', textAlign: 'center', fontSize: 13.5, color: '#9aa1ad' }}>No clients match your search.</div>
+        )}
         {rows.map(c => (
           <div
             key={c.id}
