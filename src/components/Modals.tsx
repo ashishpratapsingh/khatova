@@ -188,6 +188,7 @@ function ClientFormModal({ title, intro, submitLabel, initial, existing = [], se
   const [city, setCity] = useState(initial?.city ?? '');
   const [stateField, setStateField] = useState(initial?.state ?? '');
   const [busy, setBusy] = useState(false);
+  const [tab, setTab] = useState<'details' | 'address' | 'policy'>('details');
   const sym = CURRENCIES[currency].symbol.trim();
 
   const others = existing.filter(c => c.id !== selfId);
@@ -210,77 +211,113 @@ function ClientFormModal({ title, intro, submitLabel, initial, existing = [], se
     </div>
   );
 
+  const detailsInvalid = company.trim() === '' || companyDup || emailDup;
+  const TABS: Array<{ key: typeof tab; label: string; flag?: boolean }> = [
+    { key: 'details', label: 'Details', flag: detailsInvalid },
+    { key: 'address', label: 'Address' },
+    { key: 'policy', label: 'Policy' },
+  ];
+  const lbl = { display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 } as const;
+
   return (
-    <ModalShell title={title} onClose={onClose}>
-      <p style={{ fontSize: 13, color: '#687184', margin: '2px 0 20px' }}>{intro}</p>
+    <ModalShell title={title} onClose={onClose} width="540px">
+      <p style={{ fontSize: 13, color: '#687184', margin: '2px 0 16px' }}>{intro}</p>
 
-      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Company name</label>
-      <input value={company} onChange={e => setCompany(e.target.value)} placeholder="e.g. Rathore Timber Pvt Ltd"
-        style={{ ...inputStyle, marginBottom: companyDup ? 0 : 14, borderColor: companyDup ? '#e0a3a0' : '#dcdfe6' }} />
-      {companyDup && dupMsg('A client with this name already exists.')}
-      {companyDup && <div style={{ height: 14 }} />}
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
-        <div>
-          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Contact person</label>
-          <input value={contact} onChange={e => setContact(e.target.value)} placeholder="e.g. Vikram Rao" style={inputStyle} />
-        </div>
-        <div>
-          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Mobile number</label>
-          <input value={mobile} onChange={e => setMobile(e.target.value)} placeholder="e.g. +91 98765 43210" style={inputStyle} />
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
-        <div>
-          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Currency</label>
-          <select value={currency} onChange={e => setCurrency(e.target.value as Currency)} style={{ ...inputStyle, background: '#fff' }}>
-            {(Object.keys(CURRENCIES) as Currency[]).map(c => (
-              <option key={c} value={c}>{CURRENCIES[c].option}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Low-balance alert ({sym})</label>
-          <input type="number" value={threshold} onChange={e => setThreshold(e.target.value)} placeholder="0" style={{ ...inputStyle, fontFamily: "'IBM Plex Mono'" }} />
-        </div>
-      </div>
-
-      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Billing email</label>
-      <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="billing@company.in"
-        style={{ ...inputStyle, marginBottom: emailDup ? 0 : 14, borderColor: emailDup ? '#e0a3a0' : '#dcdfe6' }} />
-      {emailDup && dupMsg('A client with this billing email already exists.')}
-      {emailDup && <div style={{ height: 14 }} />}
-
-      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Address line 1</label>
-      <input value={address1} onChange={e => setAddress1(e.target.value)} placeholder="Street address, building" style={{ ...inputStyle, marginBottom: 12 }} />
-
-      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Address line 2</label>
-      <input value={address2} onChange={e => setAddress2(e.target.value)} placeholder="Area, landmark (optional)" style={{ ...inputStyle, marginBottom: 12 }} />
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
-        <div>
-          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>City</label>
-          <input value={city} onChange={e => setCity(e.target.value)} placeholder="e.g. Mumbai" style={inputStyle} />
-        </div>
-        <div>
-          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>State</label>
-          <input value={stateField} onChange={e => setStateField(e.target.value)} placeholder="e.g. Maharashtra" style={inputStyle} />
-        </div>
-      </div>
-
-      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 8 }}>Negative-balance policy</label>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 22 }}>
-        {POLICIES.map(p => (
-          <button key={p.key} onClick={() => setPolicy(p.key)}
-            style={{ padding: '10px 8px', border: policy === p.key ? '2px solid #1f6feb' : '1px solid #dcdfe6', background: policy === p.key ? '#eaf1fe' : '#fff', borderRadius: 10, cursor: 'pointer', textAlign: 'center' }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: policy === p.key ? '#1f6feb' : '#161b26' }}>{p.label}</div>
-            <div style={{ fontSize: 11, color: '#9aa1ad', marginTop: 2 }}>{p.desc}</div>
+      {/* Tab bar */}
+      <div style={{ display: 'flex', gap: 4, background: '#f1f3f6', borderRadius: 10, padding: 4, marginBottom: 18 }}>
+        {TABS.map(t => (
+          <button key={t.key} onClick={() => setTab(t.key)}
+            style={{ flex: 1, height: 34, border: 'none', borderRadius: 7, cursor: 'pointer', fontSize: 13, fontWeight: 600,
+              background: tab === t.key ? '#fff' : 'transparent', color: tab === t.key ? '#161b26' : '#687184',
+              boxShadow: tab === t.key ? '0 1px 2px rgba(16,24,40,.12)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            {t.label}
+            {t.flag && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#c5362c' }} />}
           </button>
         ))}
       </div>
 
-      <div style={{ display: 'flex', gap: 10 }}>
+      {/* Details tab */}
+      {tab === 'details' && (
+        <div>
+          <label style={lbl}>Company name</label>
+          <input value={company} onChange={e => setCompany(e.target.value)} placeholder="e.g. Rathore Timber Pvt Ltd"
+            style={{ ...inputStyle, marginBottom: companyDup ? 0 : 14, borderColor: companyDup ? '#e0a3a0' : '#dcdfe6' }} />
+          {companyDup && dupMsg('A client with this name already exists.')}
+          {companyDup && <div style={{ height: 14 }} />}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+            <div>
+              <label style={lbl}>Contact person</label>
+              <input value={contact} onChange={e => setContact(e.target.value)} placeholder="e.g. Vikram Rao" style={inputStyle} />
+            </div>
+            <div>
+              <label style={lbl}>Mobile number</label>
+              <input value={mobile} onChange={e => setMobile(e.target.value)} placeholder="e.g. +91 98765 43210" style={inputStyle} />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+            <div>
+              <label style={lbl}>Currency</label>
+              <select value={currency} onChange={e => setCurrency(e.target.value as Currency)} style={{ ...inputStyle, background: '#fff' }}>
+                {(Object.keys(CURRENCIES) as Currency[]).map(c => (
+                  <option key={c} value={c}>{CURRENCIES[c].option}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label style={lbl}>Low-balance alert ({sym})</label>
+              <input type="number" value={threshold} onChange={e => setThreshold(e.target.value)} placeholder="0" style={{ ...inputStyle, fontFamily: "'IBM Plex Mono'" }} />
+            </div>
+          </div>
+
+          <label style={lbl}>Billing email</label>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="billing@company.in"
+            style={{ ...inputStyle, marginBottom: emailDup ? 0 : 2, borderColor: emailDup ? '#e0a3a0' : '#dcdfe6' }} />
+          {emailDup && dupMsg('A client with this billing email already exists.')}
+        </div>
+      )}
+
+      {/* Address tab */}
+      {tab === 'address' && (
+        <div>
+          <label style={lbl}>Address line 1</label>
+          <input value={address1} onChange={e => setAddress1(e.target.value)} placeholder="Street address, building" style={{ ...inputStyle, marginBottom: 12 }} />
+
+          <label style={lbl}>Address line 2</label>
+          <input value={address2} onChange={e => setAddress2(e.target.value)} placeholder="Area, landmark (optional)" style={{ ...inputStyle, marginBottom: 12 }} />
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={lbl}>City</label>
+              <input value={city} onChange={e => setCity(e.target.value)} placeholder="e.g. Mumbai" style={inputStyle} />
+            </div>
+            <div>
+              <label style={lbl}>State</label>
+              <input value={stateField} onChange={e => setStateField(e.target.value)} placeholder="e.g. Maharashtra" style={inputStyle} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Policy tab */}
+      {tab === 'policy' && (
+        <div>
+          <label style={{ ...lbl, marginBottom: 8 }}>Negative-balance policy</label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+            {POLICIES.map(p => (
+              <button key={p.key} onClick={() => setPolicy(p.key)}
+                style={{ padding: '12px 8px', border: policy === p.key ? '2px solid #1f6feb' : '1px solid #dcdfe6', background: policy === p.key ? '#eaf1fe' : '#fff', borderRadius: 10, cursor: 'pointer', textAlign: 'center' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: policy === p.key ? '#1f6feb' : '#161b26' }}>{p.label}</div>
+                <div style={{ fontSize: 11, color: '#9aa1ad', marginTop: 2 }}>{p.desc}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div style={{ display: 'flex', gap: 10, marginTop: 22, paddingTop: 16, borderTop: '1px solid #f2f3f6' }}>
         <button onClick={onClose} style={{ flex: 1, height: 42, border: '1px solid #dcdfe6', background: '#fff', color: '#3f4654', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
         <button onClick={submit} disabled={busy || !valid} style={{ flex: 2, height: 42, background: '#1f6feb', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: busy || !valid ? 0.6 : 1 }}>{busy ? 'Saving…' : submitLabel}</button>
       </div>

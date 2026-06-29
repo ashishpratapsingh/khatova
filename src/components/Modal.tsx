@@ -30,11 +30,12 @@ export function ModalShell({ title, onClose, children, width = '440px' }: Props)
         style={{
           width: '100%',
           maxWidth: width,
+          maxHeight: 'calc(100vh - 48px)',
           background: '#fff',
           borderRadius: 16,
           boxShadow: '0 24px 60px rgba(16,24,40,.28)',
           animation: 'lgPop .2s cubic-bezier(.2,.8,.2,1)',
-          overflow: 'hidden',
+          overflow: 'auto',
         }}
       >
         <div style={{ padding: '22px 24px 20px' }}>
