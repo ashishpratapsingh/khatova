@@ -22,13 +22,12 @@ interface Props {
   portalLabel: string;
   nav: NavItem[];
   me: Me;
-  onLogout: () => void;
   mobile?: boolean;
   open?: boolean;
   onClose?: () => void;
 }
 
-export default function Sidebar({ portalLabel, nav, me, onLogout, mobile, open, onClose }: Props) {
+export default function Sidebar({ portalLabel, nav, me, mobile, open, onClose }: Props) {
   const handleNav = (fn: () => void) => { fn(); if (mobile) onClose?.(); };
   return (
     <aside
@@ -107,20 +106,14 @@ export default function Sidebar({ portalLabel, nav, me, onLogout, mobile, open, 
         </div>
       </div>
 
-      {/* Bottom */}
-      <div style={{ padding: 12 }}>
-        <div
-          onClick={() => handleNav(onLogout)}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 8px', borderRadius: 9, cursor: 'pointer' }}
-          onMouseEnter={e => (e.currentTarget.style.background = '#f1f3f6')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-        >
+      {/* Bottom — passive "signed in as" identity (logout lives in the header menu) */}
+      <div style={{ padding: 12, borderTop: '1px solid #eef0f3' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px' }}>
           <Avatar text={me.initials} bg={me.badgeBg} fg={me.badgeFg} size={30} radius={15} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{me.name}</div>
             <div style={{ fontSize: 11.5, color: '#9aa1ad', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{me.sub}</div>
           </div>
-          <Icon name="logout" size={18} color="#9aa1ad" />
         </div>
       </div>
     </aside>

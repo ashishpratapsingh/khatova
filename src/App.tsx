@@ -231,7 +231,7 @@ export default function App() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f6f7f9', fontFamily: "'IBM Plex Sans', system-ui, sans-serif" }}>
       {!isMobile && (
-        <Sidebar portalLabel={portalLabel} nav={nav} me={me} onLogout={app.logout} />
+        <Sidebar portalLabel={portalLabel} nav={nav} me={me} />
       )}
 
       {isMobile && drawerOpen && (
@@ -239,7 +239,7 @@ export default function App() {
       )}
       {isMobile && (
         <Sidebar
-          portalLabel={portalLabel} nav={nav} me={me} onLogout={app.logout}
+          portalLabel={portalLabel} nav={nav} me={me}
           mobile open={drawerOpen} onClose={() => setDrawerOpen(false)}
         />
       )}
