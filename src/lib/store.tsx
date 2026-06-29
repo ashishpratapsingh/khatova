@@ -86,6 +86,7 @@ interface AppApi {
   openAdjust: (id: string) => void;
   openReject: (ev: { id: string; staff: string; desc: string; amountFmt: string }) => void;
   openAddUser: () => void;
+  openNewClient: () => void;
   closeModal: () => void;
   // mutations
   flash: (msg: string, tone?: 'ok' | 'warn') => void;
@@ -96,6 +97,7 @@ interface AppApi {
   logUsage: (p: { contractId: string; unit: string; qty: number; amount: number; type: ContractType; desc: string }) => Promise<void>;
   createContract: (p: CreateContractInput) => Promise<void>;
   inviteUser: (p: { email: string; password: string; name: string; role: 'admin' | 'staff' | 'client'; client: string | null }) => Promise<void>;
+  createClient: (p: { company: string; contact: string; email: string; threshold: number; policy: WalletPolicy }) => Promise<void>;
 }
 
 export interface CreateContractInput {
@@ -269,6 +271,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setModalData({ ...ev }); setModal('reject');
   }, []);
   const openAddUser = useCallback(() => { setModalData({}); setModal('adduser'); }, []);
+  const openNewClient = useCallback(() => { setModalData({}); setModal('newclient'); }, []);
   const closeModal = useCallback(() => setModal(null), []);
 
   // --- mutations ---
@@ -328,12 +331,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     flash('User account created');
   }, [flash, invalidate]);
 
+  const createClient = useCallback(async (p: { company: string; contact: string; email: string; threshold: number; policy: WalletPolicy }) => {
+    const { error } = await supabase.rpc('create_client', {
+      p_company: p.company, p_contact: p.contact, p_email: p.email, p_threshold: p.threshold, p_policy: p.policy,
+    });
+    if (error) { flash(error.message, 'warn'); throw error; }
+    invalidate(['clients']); setModal(null);
+    flash('Client created');
+  }, [flash, invalidate]);
+
   const api: AppApi = {
     state, session, profile, portal, authLoading, authError,
     search, setSearch, readNotifs, markNotifsRead,
     login, logout, go, openClient, openContract, setClientTab, setNewType, setLogContract, update,
-    openTopup, openAdjust, openReject, openAddUser, closeModal,
-    flash, topup, adjust, approve, reject, logUsage, createContract, inviteUser,
+    openTopup, openAdjust, openReject, openAddUser, openNewClient, closeModal,
+    flash, topup, adjust, approve, reject, logUsage, createContract, inviteUser, createClient,
   };
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;
 }

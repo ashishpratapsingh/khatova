@@ -8,7 +8,7 @@ interface Props {
   state: AppState;
   openClient: (id: string) => void;
   openTopup: (id: string) => void;
-  openAddUser: () => void;
+  openNewClient: () => void;
 }
 
 const FILTERS: Array<{ label: string; key: ClientStatus | 'ALL' }> = [
@@ -16,7 +16,7 @@ const FILTERS: Array<{ label: string; key: ClientStatus | 'ALL' }> = [
   { label: 'Low', key: 'LOW' }, { label: 'Negative', key: 'NEGATIVE' },
 ];
 
-export default function AdminClients({ state, openClient, openTopup, openAddUser }: Props) {
+export default function AdminClients({ state, openClient, openTopup, openNewClient }: Props) {
   const { search, setSearch } = useApp();
   const [filter, setFilter] = useState<ClientStatus | 'ALL'>('ALL');
   const q = search.trim().toLowerCase();
@@ -50,7 +50,7 @@ export default function AdminClients({ state, openClient, openTopup, openAddUser
           {search && <span onClick={() => setSearch('')} style={{ cursor: 'pointer', display: 'flex' }}><Icon name="close" size={16} color="#9aa1ad" /></span>}
         </div>
         <button
-          onClick={openAddUser}
+          onClick={openNewClient}
           style={{ height: 38, background: '#1f6feb', color: '#fff', border: 'none', borderRadius: 9, padding: '0 16px', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 2px 8px rgba(31,111,235,.22)' }}
         >
           <Icon name="add" size={19} color="#fff" />New client

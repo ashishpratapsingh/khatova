@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ModalShell, MRow } from './Modal';
 import { money } from '../data';
-import type { ClientMeta } from '../types';
+import type { ClientMeta, WalletPolicy } from '../types';
 
 const inputStyle = { width: '100%', height: 44, border: '1px solid #dcdfe6', borderRadius: 10, padding: '0 13px', fontSize: 13.5, boxSizing: 'border-box' as const };
 
@@ -147,6 +147,79 @@ export function RejectModal({ data, onClose, onSubmit }: {
       <div style={{ display: 'flex', gap: 10 }}>
         <button onClick={onClose} style={{ flex: 1, height: 42, border: '1px solid #dcdfe6', background: '#fff', color: '#3f4654', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
         <button onClick={submit} disabled={busy} style={{ flex: 2, height: 42, background: '#c5362c', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: busy ? 0.6 : 1 }}>Confirm rejection</button>
+      </div>
+    </ModalShell>
+  );
+}
+
+// New client modal ---------------------------------------------------------
+const POLICIES: Array<{ key: WalletPolicy; label: string; desc: string }> = [
+  { key: 'BLOCK', label: 'Block', desc: 'Reject overdraws' },
+  { key: 'ALLOW', label: 'Allow', desc: 'Permit negative' },
+  { key: 'PAUSE', label: 'Pause', desc: 'Pause on low' },
+];
+
+export function NewClientModal({ onClose, onSubmit }: {
+  onClose: () => void;
+  onSubmit: (p: { company: string; contact: string; email: string; threshold: number; policy: WalletPolicy }) => Promise<void>;
+}) {
+  const [company, setCompany] = useState('');
+  const [contact, setContact] = useState('');
+  const [email, setEmail] = useState('');
+  const [threshold, setThreshold] = useState('');
+  const [policy, setPolicy] = useState<WalletPolicy>('BLOCK');
+  const [busy, setBusy] = useState(false);
+  const valid = company.trim().length > 0;
+
+  const submit = async () => {
+    if (busy || !valid) return;
+    setBusy(true);
+    try {
+      await onSubmit({
+        company, contact, email,
+        threshold: Math.round((parseFloat(threshold || '0') || 0) * 100),
+        policy,
+      });
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <ModalShell title="New client" onClose={onClose}>
+      <p style={{ fontSize: 13, color: '#687184', margin: '2px 0 20px' }}>
+        Add a client company. Their wallet starts at ₹0 — top it up afterwards.
+      </p>
+
+      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Company name</label>
+      <input value={company} onChange={e => setCompany(e.target.value)} placeholder="e.g. Rathore Timber Pvt Ltd" style={{ ...inputStyle, marginBottom: 14 }} />
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+        <div>
+          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Contact person</label>
+          <input value={contact} onChange={e => setContact(e.target.value)} placeholder="e.g. Vikram Rao" style={inputStyle} />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Low-balance alert (₹)</label>
+          <input type="number" value={threshold} onChange={e => setThreshold(e.target.value)} placeholder="0" style={{ ...inputStyle, fontFamily: "'IBM Plex Mono'" }} />
+        </div>
+      </div>
+
+      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 6 }}>Billing email</label>
+      <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="billing@company.in" style={{ ...inputStyle, marginBottom: 14 }} />
+
+      <label style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: '#3f4654', marginBottom: 8 }}>Negative-balance policy</label>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 22 }}>
+        {POLICIES.map(p => (
+          <button key={p.key} onClick={() => setPolicy(p.key)}
+            style={{ padding: '10px 8px', border: policy === p.key ? '2px solid #1f6feb' : '1px solid #dcdfe6', background: policy === p.key ? '#eaf1fe' : '#fff', borderRadius: 10, cursor: 'pointer', textAlign: 'center' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: policy === p.key ? '#1f6feb' : '#161b26' }}>{p.label}</div>
+            <div style={{ fontSize: 11, color: '#9aa1ad', marginTop: 2 }}>{p.desc}</div>
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 10 }}>
+        <button onClick={onClose} style={{ flex: 1, height: 42, border: '1px solid #dcdfe6', background: '#fff', color: '#3f4654', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+        <button onClick={submit} disabled={busy || !valid} style={{ flex: 2, height: 42, background: '#1f6feb', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: busy || !valid ? 0.6 : 1 }}>Create client</button>
       </div>
     </ModalShell>
   );
