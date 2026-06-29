@@ -1,17 +1,31 @@
+import { useEffect, useRef, useState } from 'react';
 import { Icon, Avatar } from '../ui';
 
 interface Props {
   title: string;
   sub: string;
-  me: { initials: string; badgeBg: string; badgeFg: string };
+  me: { name: string; sub: string; initials: string; badgeBg: string; badgeFg: string };
   onMenu?: () => void;
+  onLogout: () => void;
   search: string;
   onSearch: (q: string) => void;
   searchPlaceholder?: string;
   showSearch?: boolean;
 }
 
-export default function Header({ title, sub, me, onMenu, search, onSearch, searchPlaceholder = 'Search…', showSearch = true }: Props) {
+export default function Header({ title, sub, me, onMenu, onLogout, search, onSearch, searchPlaceholder = 'Search…', showSearch = true }: Props) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [menuOpen]);
+
   return (
     <header style={{
       height: 62,
@@ -57,7 +71,41 @@ export default function Header({ title, sub, me, onMenu, search, onSearch, searc
         <Icon name="notifications" size={20} color="#3f4654" />
         <span style={{ position: 'absolute', top: 7, right: 8, width: 7, height: 7, borderRadius: '50%', background: '#e0492f', border: '1.5px solid #f1f3f6' }} />
       </div>
-      <Avatar text={me.initials} bg={me.badgeBg} fg={me.badgeFg} size={36} radius={18} />
+      <div ref={menuRef} style={{ position: 'relative' }}>
+        <button
+          onClick={() => setMenuOpen(o => !o)}
+          aria-label="Account menu"
+          style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}
+        >
+          <Avatar text={me.initials} bg={me.badgeBg} fg={me.badgeFg} size={36} radius={18} />
+          <Icon name="expand_more" size={18} color="#9aa1ad" style={{ transition: 'transform .15s', transform: menuOpen ? 'rotate(180deg)' : 'none' }} />
+        </button>
+
+        {menuOpen && (
+          <div style={{
+            position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 220,
+            background: '#fff', border: '1px solid #e7e9ee', borderRadius: 12,
+            boxShadow: '0 12px 32px rgba(16,24,40,.16)', zIndex: 30, overflow: 'hidden',
+            animation: 'lgPop .14s ease',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 14px', borderBottom: '1px solid #f2f3f6' }}>
+              <Avatar text={me.initials} bg={me.badgeBg} fg={me.badgeFg} size={36} radius={18} />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{me.name}</div>
+                <div style={{ fontSize: 12, color: '#9aa1ad', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{me.sub}</div>
+              </div>
+            </div>
+            <button
+              onClick={() => { setMenuOpen(false); onLogout(); }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '11px 14px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 13.5, fontWeight: 500, color: '#c5362c', textAlign: 'left' }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#fbf2f1')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              <Icon name="logout" size={19} color="#c5362c" />Log out
+            </button>
+          </div>
+        )}
+      </div>
     </header>
   );
 }

@@ -175,7 +175,7 @@ export default function App() {
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <Header
-          title={meta.title} sub={meta.sub} me={me}
+          title={meta.title} sub={meta.sub} me={me} onLogout={app.logout}
           onMenu={isMobile ? () => setDrawerOpen(true) : undefined}
           search={app.search} onSearch={app.setSearch}
           searchPlaceholder={searchPlaceholder ?? 'Search…'}
